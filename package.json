@@ -1,6 +1,6 @@
 {
   "name": "my-app",
-  "homepage": "https://BurntToast05.github.io/wordlesolver",
+  "homepage": "https://BurntToast05.github.io/WordleSolver",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
