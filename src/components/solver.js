@@ -1247,9 +1247,11 @@ export default function WsordleSolver(props) {
           </Button>
         </Box>
         {loading ? (
-          <Box sx={{ display: "flex"}}>
-            <Typography sx={{mt: 3, mr: 2}} variant="h6">Loading</Typography>{" "}
-            <CircularProgress disableShrink sx={{mt: 3}} />
+          <Box sx={{ display: "flex" }}>
+            <Typography sx={{ mt: 3, mr: 2 }} variant="h6">
+              Loading
+            </Typography>{" "}
+            <CircularProgress disableShrink sx={{ mt: 3 }} />
           </Box>
         ) : (
           <>
@@ -1265,41 +1267,60 @@ export default function WsordleSolver(props) {
               >
                 <nav aria-label="secondary mailbox folders">
                   <List>
-                    <ListItem disablePadding>
-                      <ListItemButton component="a" href="#simple-list">
-                        <ListItemText
-                          primary={
-                            suggestionWord !== ""
-                              ? `Suggestion 1: ${suggestionWord.toUpperCase()}`
-                              : ""
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                    <Divider />
-                    <ListItem disablePadding>
-                      <ListItemButton component="a" href="#simple-list">
-                        <ListItemText
-                          primary={
-                            secondBestSuggestion !== ""
-                              ? `Suggestion 2: ${secondBestSuggestion.toUpperCase()}`
-                              : ""
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
-                    <Divider />
-                    <ListItem disablePadding>
-                      <ListItemButton component="a" href="#simple-list">
-                        <ListItemText
-                          primary={
-                            thirdBestSuggestion !== ""
-                              ? `Suggestion 3: ${thirdBestSuggestion.toUpperCase()}`
-                              : ""
-                          }
-                        />
-                      </ListItemButton>
-                    </ListItem>
+                    {suggestionWord !== "" ? (
+                      <ListItem disablePadding>
+                        <ListItemButton component="a" href="#simple-list">
+                          <ListItemText
+                            primary={
+                              suggestionWord !== ""
+                                ? `Suggestion 1: ${suggestionWord.toUpperCase()}`
+                                : ""
+                            }
+                          />
+                        </ListItemButton>
+                      </ListItem>
+                    ) : (
+                      ""
+                    )}
+
+                    {secondBestSuggestion !== "" ? (
+                      <>
+                        <Divider />
+                        <ListItem disablePadding>
+                          {" "}
+                          <ListItemButton component="a" href="#simple-list">
+                            <ListItemText
+                              primary={
+                                secondBestSuggestion !== ""
+                                  ? `Suggestion 2: ${secondBestSuggestion.toUpperCase()}`
+                                  : ""
+                              }
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      </>
+                    ) : (
+                      ""
+                    )}
+
+                    {thirdBestSuggestion !== "" ? (
+                      <>
+                        <Divider />
+                        <ListItem disablePadding>
+                          <ListItemButton component="a" href="#simple-list">
+                            <ListItemText
+                              primary={
+                                thirdBestSuggestion !== ""
+                                  ? `Suggestion 3: ${thirdBestSuggestion.toUpperCase()}`
+                                  : ""
+                              }
+                            />
+                          </ListItemButton>
+                        </ListItem>
+                      </>
+                    ) : (
+                      ""
+                    )}
                   </List>
                 </nav>
               </Box>
