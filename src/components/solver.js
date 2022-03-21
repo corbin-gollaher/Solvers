@@ -1,11 +1,10 @@
 import React from "react";
 import { useState, useEffect } from "react";
 import { TextField, Typography } from "@mui/material";
-import { Button,Stack, Grid, Box } from "@mui/material";
+import { Button, Stack, Grid, Box } from "@mui/material";
 import words from "./words";
 import commonWords from "./commonWords";
 import CircularProgress from "@mui/material/CircularProgress";
-import GetBestSuggestion from "./getBestSuggestion";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -94,7 +93,76 @@ export default function WsordleSolver(props) {
     console.log("loading");
     await handleSubmit();
     console.log("done loading");
+  };
 
+  const GetBestSuggestion = (
+    possibleWords,
+    invalidChar,
+    AvailableChars,
+    commonWords
+  ) => {
+    let best = new Map();
+    possibleWords.forEach((possibleWord) => {
+      let getArray = [];
+      possibleWords.forEach((wordToCheck) => {
+        let invalidCharsAdded = invalidChar;
+        for (let i = 0; i < wordToCheck.length; ++i) {
+          if (!AvailableChars.has(possibleWord.at(i).toLowerCase())) {
+            invalidCharsAdded = invalidCharsAdded.concat(wordToCheck.at(i));
+          }
+        }
+        for (let i = 0; i < 5; ++i) {
+          //filter already guessed characters
+          getArray = possibleWords.filter(function (str) {
+            let valid = true;
+            for (let i = 0; i < invalidCharsAdded.length; ++i) {
+              if (str.indexOf(invalidCharsAdded.at(i)) !== -1) {
+                valid = false;
+              }
+            }
+            return valid;
+          });
+        }
+        best.set(wordToCheck, getArray.length);
+      });
+    });
+
+    let smallestSize = 15000;
+    let suggestion = "";
+    let second = "";
+    let third = "";
+    best.forEach((value, key) => {
+      if (
+        value < smallestSize ||
+        third === "" ||
+        second === "" ||
+        suggestion === ""
+      ) {
+        third = second;
+        second = suggestion;
+        suggestion = key;
+        smallestSize = value;
+      } else if (value === smallestSize) {
+        let keyBoolean = false;
+        let suggestionBoolean = false;
+        commonWords.forEach((item) => {
+          if (item === key) {
+            keyBoolean = true;
+          }
+          if (item === suggestion) {
+            suggestionBoolean = true;
+          }
+        });
+
+        if (keyBoolean && !suggestionBoolean) {
+          third = second;
+          second = suggestion;
+          suggestion = key;
+        }
+        smallestSize = value;
+      }
+    });
+    return { suggestion, second, third };
   };
 
   const handleSubmit = async (e) => {
@@ -223,50 +291,56 @@ export default function WsordleSolver(props) {
 
       setAvailableWords(possibleWords);
 
-      if (possibleWords.length < 250) {
-        let data = await GetBestSuggestion(
-          possibleWords,
-          invalidChar,
-          allAvailableChars,
-          commonWords
-        );
-        setSuggestionWord(data.suggestion);
-        setSecondBestSuggestion(data.second);
-        setThirdBestSuggestion(data.third);
-      } else {
-        let data = "";
-        for (let i = 0; i < commonWords.length; ++i) {
-          if (possibleWords.indexOf(commonWords[i]) !== -1) {
-            data = commonWords[i];
-            setSuggestionWord(data);
-          }
-        }
-        if (data === "") {
-          let first = "";
-          let second = "";
-          let third = "";
+      try {
+        if (possibleWords.length < 250) {
+          let data = await GetBestSuggestion(
+            possibleWords,
+            invalidChar,
+            allAvailableChars,
+            commonWords
+          );
+          setSuggestionWord(data.suggestion);
+          setSecondBestSuggestion(data.second);
+          setThirdBestSuggestion(data.third);
+        } else {
+          let data = "";
           for (let i = 0; i < commonWords.length; ++i) {
-            if (first === "") {
-              if (isUnique(possibleWords[i])) {
-                first = possibleWords[i];
-                setSuggestionWord(possibleWords[i]);
-              }
-            } else if (second === "") {
-              if (isUnique(possibleWords[i])) {
-                second = possibleWords[i];
-                setSecondBestSuggestion(possibleWords[i]);
-              }
-            } else if (third === "") {
-              if (isUnique(possibleWords[i])) {
-                third = possibleWords[i];
-                setThirdBestSuggestion(possibleWords[i]);
+            if (possibleWords.indexOf(commonWords[i]) !== -1) {
+              data = commonWords[i];
+              setSuggestionWord(data);
+            }
+          }
+          if (data === "") {
+            let first = "";
+            let second = "";
+            let third = "";
+            for (let i = 0; i < commonWords.length; ++i) {
+              if (first === "") {
+                if (isUnique(possibleWords[i])) {
+                  first = possibleWords[i];
+                  setSuggestionWord(possibleWords[i]);
+                }
+              } else if (second === "") {
+                if (isUnique(possibleWords[i])) {
+                  second = possibleWords[i];
+                  setSecondBestSuggestion(possibleWords[i]);
+                }
+              } else if (third === "") {
+                if (isUnique(possibleWords[i])) {
+                  third = possibleWords[i];
+                  setThirdBestSuggestion(possibleWords[i]);
+                }
               }
             }
           }
         }
+      } catch (err) {
+        console.log(err);
+        console.log("mapping");
       }
     } catch (err) {
       console.log(err);
+      console.log("setting available words");
     }
     clearColors();
   };
