@@ -17,6 +17,7 @@ import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Tooltip from "@mui/material/Tooltip";
 import { InfoOutlined } from "@mui/icons-material";
+import InfoModal from "./infoModal";
 
 export default function WsordleSolver(props) {
   const [word, setWord] = useState("");
@@ -274,6 +275,40 @@ export default function WsordleSolver(props) {
     setLoading(false);
   };
 
+  function handleKeyPress(e) {
+    var key = e.keyCode;
+    console.log(e);
+    console.log("You pressed a key: " + key);
+
+    if (key === 8) {
+      if (e.target.id === "box1") {
+        setFirstGuess("");
+        setFirstColor("");
+        document.getElementById("box1").focus();
+      }
+      if (e.target.id === "box2") {
+        setSecondGuess("");
+        setSecondColor("");
+        document.getElementById("box1").focus();
+      }
+      if (e.target.id === "box3") {
+        setThirdGuess("");
+        setThirdColor("");
+        document.getElementById("box2").focus();
+      }
+      if (e.target.id === "box4") {
+        setFourthGuess("");
+        setFourthColor("");
+        document.getElementById("box3").focus();
+      }
+      if (e.target.id === "box5") {
+        setFifthGuess("");
+        setFifthColor("");
+        document.getElementById("box4").focus();
+      }
+    }
+  }
+
   const isUnique = (str) => {
     return new Set(str).size == str.length;
   };
@@ -286,16 +321,19 @@ export default function WsordleSolver(props) {
         direction="column"
         alignItems="center"
         justifyContent="center"
-        sx={{mt: 3}}
+        sx={{ mt: 3 }}
       >
-        <h3>
-          Hard Mode Wordle Helper{" "}
-          <Tooltip title="Information">
-            <IconButton>
-              <InfoOutlined fontSize="small" />
-            </IconButton>
-          </Tooltip>
-        </h3>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="center"
+          justifyContent="center"
+          sx={{ width: 0.5, marginBottom: 2 }}
+          textAlign="center"
+        >
+          <h3>Hard Mode Wordle Helper</h3>
+          <InfoModal></InfoModal>
+        </Stack>
         {!loading
           ? pastGuesses.map((guessArray, arrayIndex) => {
               return (
@@ -320,6 +358,7 @@ export default function WsordleSolver(props) {
                             bgcolor: "background.paper",
                             borderRadius: 1,
                             justifyContent: "center",
+                            boxShadow: 3,
                           }}
                         >
                           {pastColors[arrayIndex].at(index) === "green" ? (
@@ -441,10 +480,13 @@ export default function WsordleSolver(props) {
                   setFirstGuess(e.target.value);
                   setSecondFocused(true);
                   setFirstFocused(false);
-                  document.getElementById("box2").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box2").focus();
+                  }
                   setFirstColor("input");
                 }}
                 autoFocus={true}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : firstColor === "input" ? (
               <TextField
@@ -470,10 +512,13 @@ export default function WsordleSolver(props) {
                   setFirstGuess(e.target.value);
                   setSecondFocused(true);
                   setFirstFocused(false);
-                  document.getElementById("box2").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box2").focus();
+                  }
                   setFirstColor("input");
                 }}
                 autoFocus={true}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : firstColor === "yellow" ? (
               <TextField
@@ -499,10 +544,13 @@ export default function WsordleSolver(props) {
                   setFirstGuess(e.target.value);
                   setSecondFocused(true);
                   setFirstFocused(false);
-                  document.getElementById("box2").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box2").focus();
+                  }
                   setFirstColor("input");
                 }}
                 autoFocus={true}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : (
               <TextField
@@ -523,10 +571,13 @@ export default function WsordleSolver(props) {
                   setFirstGuess(e.target.value);
                   setSecondFocused(true);
                   setFirstFocused(false);
-                  document.getElementById("box2").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box2").focus();
+                  }
                   setFirstColor("input");
                 }}
                 autoFocus={true}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             )}
             <Button
@@ -580,9 +631,12 @@ export default function WsordleSolver(props) {
                   setSecondFocused(false);
                   setThirdFocused(true);
                   setSecondGuess(e.target.value);
-                  document.getElementById("box3").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box3").focus();
+                  }
                   setSecondColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : secondColor === "green" ? (
               <TextField
@@ -608,9 +662,12 @@ export default function WsordleSolver(props) {
                   setSecondFocused(false);
                   setThirdFocused(true);
                   setSecondGuess(e.target.value);
-                  document.getElementById("box3").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box3").focus();
+                  }
                   setSecondColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : secondColor === "yellow" ? (
               <TextField
@@ -636,9 +693,12 @@ export default function WsordleSolver(props) {
                   setSecondFocused(false);
                   setThirdFocused(true);
                   setSecondGuess(e.target.value);
-                  document.getElementById("box3").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box3").focus();
+                  }
                   setSecondColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : (
               <TextField
@@ -659,9 +719,12 @@ export default function WsordleSolver(props) {
                   setSecondFocused(false);
                   setThirdFocused(true);
                   setSecondGuess(e.target.value);
-                  document.getElementById("box3").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box3").focus();
+                  }
                   setSecondColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             )}
             <Button
@@ -715,9 +778,12 @@ export default function WsordleSolver(props) {
                   setThirdGuess(e.target.value);
                   setThirdFocused(false);
                   setFourthFocused(true);
-                  document.getElementById("box4").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box4").focus();
+                  }
                   setThirdColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : thirdColor === "green" ? (
               <TextField
@@ -743,9 +809,12 @@ export default function WsordleSolver(props) {
                   setThirdGuess(e.target.value);
                   setThirdFocused(false);
                   setFourthFocused(true);
-                  document.getElementById("box4").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box4").focus();
+                  }
                   setThirdColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : thirdColor === "yellow" ? (
               <TextField
@@ -771,9 +840,12 @@ export default function WsordleSolver(props) {
                   setThirdGuess(e.target.value);
                   setThirdFocused(false);
                   setFourthFocused(true);
-                  document.getElementById("box4").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box4").focus();
+                  }
                   setThirdColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : (
               <TextField
@@ -794,9 +866,12 @@ export default function WsordleSolver(props) {
                   setThirdGuess(e.target.value);
                   setThirdFocused(false);
                   setFourthFocused(true);
-                  document.getElementById("box4").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box4").focus();
+                  }
                   setThirdColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             )}
             <Button
@@ -850,9 +925,12 @@ export default function WsordleSolver(props) {
                   setFourthGuess(e.target.value);
                   setFourthFocused(false);
                   setFifthFocused(true);
-                  document.getElementById("box5").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box5").focus();
+                  }
                   setFourthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : fourthColor === "green" ? (
               <TextField
@@ -878,9 +956,12 @@ export default function WsordleSolver(props) {
                   setFourthGuess(e.target.value);
                   setFourthFocused(false);
                   setFifthFocused(true);
-                  document.getElementById("box5").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box5").focus();
+                  }
                   setFourthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : fourthColor === "yellow" ? (
               <TextField
@@ -906,9 +987,12 @@ export default function WsordleSolver(props) {
                   setFourthGuess(e.target.value);
                   setFourthFocused(false);
                   setFifthFocused(true);
-                  document.getElementById("box5").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box5").focus();
+                  }
                   setFourthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : (
               <TextField
@@ -929,9 +1013,12 @@ export default function WsordleSolver(props) {
                   setFourthGuess(e.target.value);
                   setFourthFocused(false);
                   setFifthFocused(true);
-                  document.getElementById("box5").focus();
+                  if (e.target.value !== "") {
+                    document.getElementById("box5").focus();
+                  }
                   setFourthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             )}
             <Button
@@ -985,9 +1072,9 @@ export default function WsordleSolver(props) {
                   setFifthGuess(e.target.value);
                   setFirstFocused(true);
                   setFifthFocused(false);
-                  document.getElementById("box1").focus();
                   setFifthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : fifthColor === "green" ? (
               <TextField
@@ -1013,9 +1100,9 @@ export default function WsordleSolver(props) {
                   setFifthGuess(e.target.value);
                   setFirstFocused(true);
                   setFifthFocused(false);
-                  document.getElementById("box1").focus();
                   setFifthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : fifthColor === "yellow" ? (
               <TextField
@@ -1041,9 +1128,9 @@ export default function WsordleSolver(props) {
                   setFifthGuess(e.target.value);
                   setFirstFocused(true);
                   setFifthFocused(false);
-                  document.getElementById("box1").focus();
                   setFifthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             ) : (
               <TextField
@@ -1064,9 +1151,9 @@ export default function WsordleSolver(props) {
                   setFifthGuess(e.target.value);
                   setFirstFocused(true);
                   setFifthFocused(false);
-                  document.getElementById("box1").focus();
                   setFifthColor("input");
                 }}
+                onKeyDown={(e) => handleKeyPress(e)}
               />
             )}
             <Button
@@ -1133,12 +1220,12 @@ export default function WsordleSolver(props) {
                   width: "100%",
                   maxWidth: 360,
                   bgcolor: "background.paper",
-                  margin: 2
+                  margin: 2,
+                  boxShadow: 3,
                 }}
               >
                 <nav aria-label="secondary mailbox folders">
                   <List>
-                    <Divider />
                     <ListItem disablePadding>
                       <ListItemButton>
                         <ListItemText
@@ -1174,7 +1261,6 @@ export default function WsordleSolver(props) {
                         />
                       </ListItemButton>
                     </ListItem>
-                    <Divider />
                   </List>
                 </nav>
               </Box>
@@ -1188,6 +1274,7 @@ export default function WsordleSolver(props) {
                   width: "100%",
                   maxWidth: 360,
                   bgcolor: "background.paper",
+                  boxShadow: 3,
                 }}
               >
                 <Accordion>
