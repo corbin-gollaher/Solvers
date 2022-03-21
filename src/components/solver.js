@@ -15,12 +15,14 @@ import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import InfoModal from "./infoModal";
+import Pagination from "@mui/material/Pagination";
+import usePagination from "./pagination";
 
 export default function WsordleSolver(props) {
   const [word, setWord] = useState("");
   const [possibleCharacters, setPossibleCharacters] = useState("");
   const [alreadyGuessed, setAlreadyGuessed] = useState("");
-  const [availableWords, setAvailableWords] = useState(null);
+  const [availableWords, setAvailableWords] = useState([]);
   const [suggestionWord, setSuggestionWord] = useState("");
   const [secondBestSuggestion, setSecondBestSuggestion] = useState("");
   const [thirdBestSuggestion, setThirdBestSuggestion] = useState("");
@@ -32,11 +34,6 @@ export default function WsordleSolver(props) {
   const [thirdGuess, setThirdGuess] = useState("");
   const [fourthGuess, setFourthGuess] = useState("");
   const [fifthGuess, setFifthGuess] = useState("");
-  const [firstFocused, setFirstFocused] = useState(false);
-  const [secondFocused, setSecondFocused] = useState(false);
-  const [thirdFocused, setThirdFocused] = useState(false);
-  const [fourthFocused, setFourthFocused] = useState(false);
-  const [fifthFocused, setFifthFocused] = useState(false);
 
   const [firstColor, setFirstColor] = useState("");
   const [secondColor, setSecondColor] = useState("");
@@ -49,11 +46,22 @@ export default function WsordleSolver(props) {
 
   const [allAvailableChars, setAllAvailableChars] = useState(new Set());
 
+  let [page, setPage] = useState(1);
+  const PER_PAGE = 24;
+
+  const count = Math.ceil(availableWords.length / PER_PAGE);
+  const _DATA = usePagination(availableWords, PER_PAGE);
+
+  const handleChange = (e, p) => {
+    setPage(p);
+    _DATA.jump(p);
+  };
+
   const clearStates = () => {
     setWord("");
     setPossibleCharacters("");
     setAlreadyGuessed("");
-    setAvailableWords(null);
+    setAvailableWords([]);
     setSuggestionWord("");
     setSecondBestSuggestion("");
     setThirdBestSuggestion("");
@@ -91,7 +99,9 @@ export default function WsordleSolver(props) {
 
   const handleSubmitFunc = async () => {
     console.log("loading");
+    setLoading(true);
     await handleSubmit();
+    setLoading(false);
     console.log("done loading");
   };
 
@@ -102,72 +112,72 @@ export default function WsordleSolver(props) {
     commonWords
   ) => {
     try {
-    let best = new Map();
-    possibleWords.forEach((possibleWord) => {
-      let getArray = [];
-      possibleWords.forEach((wordToCheck) => {
-        let invalidCharsAdded = invalidChar;
-        for (let i = 0; i < wordToCheck.length; ++i) {
-          if (!AvailableChars.has(possibleWord[i].toLowerCase())) {
-            invalidCharsAdded = invalidCharsAdded.concat(wordToCheck[i]);
-          }
-        }
-        for (let i = 0; i < 5; ++i) {
-          //filter already guessed characters
-          getArray = possibleWords.filter(function (str) {
-            let valid = true;
-            for (let i = 0; i < invalidCharsAdded.length; ++i) {
-              if (str.indexOf(invalidCharsAdded[i]) !== -1) {
-                valid = false;
-              }
+      let best = new Map();
+      possibleWords.forEach((possibleWord) => {
+        let getArray = [];
+        possibleWords.forEach((wordToCheck) => {
+          let invalidCharsAdded = invalidChar;
+          for (let i = 0; i < wordToCheck.length; ++i) {
+            if (!AvailableChars.has(possibleWord[i].toLowerCase())) {
+              invalidCharsAdded = invalidCharsAdded.concat(wordToCheck[i]);
             }
-            return valid;
-          });
-        }
-        best.set(wordToCheck, getArray.length);
-      });
-    });
-
-    let smallestSize = 15000;
-    let suggestion = "";
-    let second = "";
-    let third = "";
-    best.forEach((value, key) => {
-      if (
-        value < smallestSize ||
-        third === "" ||
-        second === "" ||
-        suggestion === ""
-      ) {
-        third = second;
-        second = suggestion;
-        suggestion = key;
-        smallestSize = value;
-      } else if (value === smallestSize) {
-        let keyBoolean = false;
-        let suggestionBoolean = false;
-        commonWords.forEach((item) => {
-          if (item === key) {
-            keyBoolean = true;
           }
-          if (item === suggestion) {
-            suggestionBoolean = true;
+          for (let i = 0; i < 5; ++i) {
+            //filter already guessed characters
+            getArray = possibleWords.filter(function (str) {
+              let valid = true;
+              for (let i = 0; i < invalidCharsAdded.length; ++i) {
+                if (str.indexOf(invalidCharsAdded[i]) !== -1) {
+                  valid = false;
+                }
+              }
+              return valid;
+            });
           }
+          best.set(wordToCheck, getArray.length);
         });
+      });
 
-        if (keyBoolean && !suggestionBoolean) {
+      let smallestSize = 15000;
+      let suggestion = "";
+      let second = "";
+      let third = "";
+      best.forEach((value, key) => {
+        if (
+          value < smallestSize ||
+          third === "" ||
+          second === "" ||
+          suggestion === ""
+        ) {
           third = second;
           second = suggestion;
           suggestion = key;
+          smallestSize = value;
+        } else if (value === smallestSize) {
+          let keyBoolean = false;
+          let suggestionBoolean = false;
+          commonWords.forEach((item) => {
+            if (item === key) {
+              keyBoolean = true;
+            }
+            if (item === suggestion) {
+              suggestionBoolean = true;
+            }
+          });
+
+          if (keyBoolean && !suggestionBoolean) {
+            third = second;
+            second = suggestion;
+            suggestion = key;
+          }
+          smallestSize = value;
         }
-        smallestSize = value;
-      }
-    });
-    return { suggestion, second, third };
-  } catch (err) {
-    console.log(err);
-    console.log("While Mapping");
-  }
+      });
+      return { suggestion, second, third };
+    } catch (err) {
+      console.log(err);
+      console.log("While Mapping");
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -296,48 +306,48 @@ export default function WsordleSolver(props) {
 
       setAvailableWords(possibleWords);
 
-        if (possibleWords.length < 250) {
-          let data = await GetBestSuggestion(
-            possibleWords,
-            invalidChar,
-            allAvailableChars,
-            commonWords
-          );
-          setSuggestionWord(data.suggestion);
-          setSecondBestSuggestion(data.second);
-          setThirdBestSuggestion(data.third);
-        } else {
-          let data = "";
-          for (let i = 0; i < commonWords.length; ++i) {
-            if (possibleWords.indexOf(commonWords[i]) !== -1) {
-              data = commonWords[i];
-              setSuggestionWord(data);
-            }
+      if (possibleWords.length < 250) {
+        let data = await GetBestSuggestion(
+          possibleWords,
+          invalidChar,
+          allAvailableChars,
+          commonWords
+        );
+        setSuggestionWord(data.suggestion);
+        setSecondBestSuggestion(data.second);
+        setThirdBestSuggestion(data.third);
+      } else {
+        let data = "";
+        for (let i = 0; i < commonWords.length; ++i) {
+          if (possibleWords.indexOf(commonWords[i]) !== -1) {
+            data = commonWords[i];
+            setSuggestionWord(data);
           }
-          if (data === "") {
-            let first = "";
-            let second = "";
-            let third = "";
-            for (let i = 0; i < commonWords.length; ++i) {
-              if (first === "") {
-                if (isUnique(possibleWords[i])) {
-                  first = possibleWords[i];
-                  setSuggestionWord(possibleWords[i]);
-                }
-              } else if (second === "") {
-                if (isUnique(possibleWords[i])) {
-                  second = possibleWords[i];
-                  setSecondBestSuggestion(possibleWords[i]);
-                }
-              } else if (third === "") {
-                if (isUnique(possibleWords[i])) {
-                  third = possibleWords[i];
-                  setThirdBestSuggestion(possibleWords[i]);
-                }
+        }
+        if (data === "") {
+          let first = "";
+          let second = "";
+          let third = "";
+          for (let i = 0; i < commonWords.length; ++i) {
+            if (first === "") {
+              if (isUnique(possibleWords[i])) {
+                first = possibleWords[i];
+                setSuggestionWord(possibleWords[i]);
+              }
+            } else if (second === "") {
+              if (isUnique(possibleWords[i])) {
+                second = possibleWords[i];
+                setSecondBestSuggestion(possibleWords[i]);
+              }
+            } else if (third === "") {
+              if (isUnique(possibleWords[i])) {
+                third = possibleWords[i];
+                setThirdBestSuggestion(possibleWords[i]);
               }
             }
           }
         }
+      }
     } catch (err) {
       console.log(err);
       console.log("setting available words");
@@ -396,10 +406,10 @@ export default function WsordleSolver(props) {
           spacing={1.5}
           alignItems="center"
           justifyContent="center"
-          sx={{ width: 0.5, marginBottom: 2 }}
+          sx={{ marginBottom: 2 }}
           textAlign="center"
         >
-          <h3>Hard Mode Wordle Helper</h3>
+          <Typography variant="h5">Hard Wordle Solver</Typography>
           <InfoModal></InfoModal>
         </Stack>
         {!loading
@@ -546,8 +556,6 @@ export default function WsordleSolver(props) {
                 value={firstGuess.toUpperCase()}
                 onChange={(e) => {
                   setFirstGuess(e.target.value);
-                  setSecondFocused(true);
-                  setFirstFocused(false);
                   if (e.target.value !== "") {
                     document.getElementById("box2").focus();
                   }
@@ -578,8 +586,6 @@ export default function WsordleSolver(props) {
                 value={firstGuess.toUpperCase()}
                 onChange={(e) => {
                   setFirstGuess(e.target.value);
-                  setSecondFocused(true);
-                  setFirstFocused(false);
                   if (e.target.value !== "") {
                     document.getElementById("box2").focus();
                   }
@@ -610,8 +616,6 @@ export default function WsordleSolver(props) {
                 value={firstGuess.toUpperCase()}
                 onChange={(e) => {
                   setFirstGuess(e.target.value);
-                  setSecondFocused(true);
-                  setFirstFocused(false);
                   if (e.target.value !== "") {
                     document.getElementById("box2").focus();
                   }
@@ -637,8 +641,6 @@ export default function WsordleSolver(props) {
                 value={firstGuess.toUpperCase()}
                 onChange={(e) => {
                   setFirstGuess(e.target.value);
-                  setSecondFocused(true);
-                  setFirstFocused(false);
                   if (e.target.value !== "") {
                     document.getElementById("box2").focus();
                   }
@@ -696,8 +698,6 @@ export default function WsordleSolver(props) {
                 variant="filled"
                 value={secondGuess.toUpperCase()}
                 onChange={(e) => {
-                  setSecondFocused(false);
-                  setThirdFocused(true);
                   setSecondGuess(e.target.value);
                   if (e.target.value !== "") {
                     document.getElementById("box3").focus();
@@ -727,8 +727,6 @@ export default function WsordleSolver(props) {
                 variant="filled"
                 value={secondGuess.toUpperCase()}
                 onChange={(e) => {
-                  setSecondFocused(false);
-                  setThirdFocused(true);
                   setSecondGuess(e.target.value);
                   if (e.target.value !== "") {
                     document.getElementById("box3").focus();
@@ -758,8 +756,6 @@ export default function WsordleSolver(props) {
                 variant="filled"
                 value={secondGuess.toUpperCase()}
                 onChange={(e) => {
-                  setSecondFocused(false);
-                  setThirdFocused(true);
                   setSecondGuess(e.target.value);
                   if (e.target.value !== "") {
                     document.getElementById("box3").focus();
@@ -784,8 +780,6 @@ export default function WsordleSolver(props) {
                 variant="filled"
                 value={secondGuess.toUpperCase()}
                 onChange={(e) => {
-                  setSecondFocused(false);
-                  setThirdFocused(true);
                   setSecondGuess(e.target.value);
                   if (e.target.value !== "") {
                     document.getElementById("box3").focus();
@@ -844,8 +838,6 @@ export default function WsordleSolver(props) {
                 value={thirdGuess.toUpperCase()}
                 onChange={(e) => {
                   setThirdGuess(e.target.value);
-                  setThirdFocused(false);
-                  setFourthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box4").focus();
                   }
@@ -875,8 +867,6 @@ export default function WsordleSolver(props) {
                 value={thirdGuess.toUpperCase()}
                 onChange={(e) => {
                   setThirdGuess(e.target.value);
-                  setThirdFocused(false);
-                  setFourthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box4").focus();
                   }
@@ -906,8 +896,6 @@ export default function WsordleSolver(props) {
                 value={thirdGuess.toUpperCase()}
                 onChange={(e) => {
                   setThirdGuess(e.target.value);
-                  setThirdFocused(false);
-                  setFourthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box4").focus();
                   }
@@ -932,8 +920,6 @@ export default function WsordleSolver(props) {
                 value={thirdGuess.toUpperCase()}
                 onChange={(e) => {
                   setThirdGuess(e.target.value);
-                  setThirdFocused(false);
-                  setFourthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box4").focus();
                   }
@@ -991,8 +977,6 @@ export default function WsordleSolver(props) {
                 value={fourthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFourthGuess(e.target.value);
-                  setFourthFocused(false);
-                  setFifthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box5").focus();
                   }
@@ -1022,8 +1006,6 @@ export default function WsordleSolver(props) {
                 value={fourthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFourthGuess(e.target.value);
-                  setFourthFocused(false);
-                  setFifthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box5").focus();
                   }
@@ -1053,8 +1035,6 @@ export default function WsordleSolver(props) {
                 value={fourthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFourthGuess(e.target.value);
-                  setFourthFocused(false);
-                  setFifthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box5").focus();
                   }
@@ -1079,8 +1059,6 @@ export default function WsordleSolver(props) {
                 value={fourthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFourthGuess(e.target.value);
-                  setFourthFocused(false);
-                  setFifthFocused(true);
                   if (e.target.value !== "") {
                     document.getElementById("box5").focus();
                   }
@@ -1138,8 +1116,6 @@ export default function WsordleSolver(props) {
                 value={fifthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFifthGuess(e.target.value);
-                  setFirstFocused(true);
-                  setFifthFocused(false);
                   setFifthColor("input");
                 }}
                 onKeyDown={(e) => handleKeyPress(e)}
@@ -1166,8 +1142,6 @@ export default function WsordleSolver(props) {
                 value={fifthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFifthGuess(e.target.value);
-                  setFirstFocused(true);
-                  setFifthFocused(false);
                   setFifthColor("input");
                 }}
                 onKeyDown={(e) => handleKeyPress(e)}
@@ -1194,8 +1168,6 @@ export default function WsordleSolver(props) {
                 value={fifthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFifthGuess(e.target.value);
-                  setFirstFocused(true);
-                  setFifthFocused(false);
                   setFifthColor("input");
                 }}
                 onKeyDown={(e) => handleKeyPress(e)}
@@ -1217,8 +1189,6 @@ export default function WsordleSolver(props) {
                 value={fifthGuess.toUpperCase()}
                 onChange={(e) => {
                   setFifthGuess(e.target.value);
-                  setFirstFocused(true);
-                  setFifthFocused(false);
                   setFifthColor("input");
                 }}
                 onKeyDown={(e) => handleKeyPress(e)}
@@ -1277,8 +1247,9 @@ export default function WsordleSolver(props) {
           </Button>
         </Box>
         {loading ? (
-          <Box sx={{ display: "flex" }}>
-            <CircularProgress />
+          <Box sx={{ display: "flex"}}>
+            <Typography sx={{mt: 3, mr: 2}} variant="h6">Loading</Typography>{" "}
+            <CircularProgress disableShrink sx={{mt: 3}} />
           </Box>
         ) : (
           <>
@@ -1286,7 +1257,7 @@ export default function WsordleSolver(props) {
               <Box
                 sx={{
                   width: "100%",
-                  maxWidth: 360,
+                  maxWidth: 300,
                   bgcolor: "background.paper",
                   margin: 2,
                   boxShadow: 3,
@@ -1295,7 +1266,7 @@ export default function WsordleSolver(props) {
                 <nav aria-label="secondary mailbox folders">
                   <List>
                     <ListItem disablePadding>
-                    <ListItemButton component="a" href="#simple-list">
+                      <ListItemButton component="a" href="#simple-list">
                         <ListItemText
                           primary={
                             suggestionWord !== ""
@@ -1305,7 +1276,7 @@ export default function WsordleSolver(props) {
                         />
                       </ListItemButton>
                     </ListItem>
-                    <Divider/>
+                    <Divider />
                     <ListItem disablePadding>
                       <ListItemButton component="a" href="#simple-list">
                         <ListItemText
@@ -1336,13 +1307,14 @@ export default function WsordleSolver(props) {
               ""
             )}
 
-            {availableWords ? (
+            {availableWords.length > 0 ? (
               <Box
                 sx={{
                   width: "100%",
-                  maxWidth: 360,
+                  maxWidth: 300,
                   bgcolor: "background.paper",
                   boxShadow: 3,
+                  mt: 1,
                 }}
               >
                 <Accordion>
@@ -1351,15 +1323,35 @@ export default function WsordleSolver(props) {
                     aria-controls="panel1a-content"
                     id="panel1a-header"
                   >
-                    <Typography>Available Words</Typography>
+                    <Typography>
+                      Valid Words: {availableWords.length}
+                    </Typography>
                   </AccordionSummary>
                   <AccordionDetails>
-                    <Typography paragraph>
-                      {availableWords ? "Available Words: " : ""}
-                      {availableWords?.map((word) => {
-                        return word + " ";
-                      })}
-                    </Typography>
+                    <Pagination
+                      count={count}
+                      size="small"
+                      page={page}
+                      onChange={handleChange}
+                      color="success"
+                    />
+
+                    <List p="10" pt="3" spacing={2}>
+                      <Box
+                        sx={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(3, 1fr)",
+                        }}
+                      >
+                        {_DATA.currentData().map((word) => {
+                          return (
+                            <ListItem key={word}>
+                              <Typography>{word.toUpperCase()}</Typography>
+                            </ListItem>
+                          );
+                        })}
+                      </Box>
+                    </List>
                   </AccordionDetails>
                 </Accordion>
               </Box>

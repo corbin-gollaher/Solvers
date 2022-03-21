@@ -66,7 +66,7 @@ export default function InfoModal() {
     <div>
       <Tooltip title="Information" onClick={handleClickOpen}>
         <IconButton>
-          <InfoOutlined fontSize="small" />
+          <InfoOutlined fontSize="medium" />
         </IconButton>
       </Tooltip>
       <BootstrapDialog
@@ -90,11 +90,6 @@ export default function InfoModal() {
             suggestions will create the smallest possible set of resulting
             words.
           </Typography>
-          <Divider />
-          <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
-            Does it work on mobile devices?{" "}
-          </Typography>
-          <Typography gutterBottom>No, still figuring that out.</Typography>
           <Divider />
           <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
             What limitations does it have?
