@@ -1,6 +1,6 @@
 import React from "react";
-import { useState, useEffect } from "react";
-import { IconButton, TextField, Typography } from "@mui/material";
+import { useState } from "react";
+import { TextField, Typography } from "@mui/material";
 import { Button, Stack, Grid, Box } from "@mui/material";
 import words from "./words";
 import commonWords from "./commonWords";
@@ -15,8 +15,6 @@ import Accordion from "@mui/material/Accordion";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import Tooltip from "@mui/material/Tooltip";
-import { InfoOutlined } from "@mui/icons-material";
 import InfoModal from "./infoModal";
 
 export default function WsordleSolver(props) {
@@ -270,7 +268,6 @@ export default function WsordleSolver(props) {
         }
       }
     }
-
     clearColors();
     setLoading(false);
   };

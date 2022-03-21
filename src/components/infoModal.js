@@ -92,6 +92,11 @@ export default function InfoModal() {
           </Typography>
           <Divider />
           <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
+            Does it work on mobile devices?{" "}
+          </Typography>
+          <Typography gutterBottom>No, still figuring that out.</Typography>
+          <Divider />
+          <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
             What limitations does it have?
           </Typography>
           <Typography gutterBottom>
