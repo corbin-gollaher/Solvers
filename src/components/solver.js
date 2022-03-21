@@ -101,14 +101,15 @@ export default function WsordleSolver(props) {
     AvailableChars,
     commonWords
   ) => {
+    try {
     let best = new Map();
     possibleWords.forEach((possibleWord) => {
       let getArray = [];
       possibleWords.forEach((wordToCheck) => {
         let invalidCharsAdded = invalidChar;
         for (let i = 0; i < wordToCheck.length; ++i) {
-          if (!AvailableChars.has(possibleWord.at(i).toLowerCase())) {
-            invalidCharsAdded = invalidCharsAdded.concat(wordToCheck.at(i));
+          if (!AvailableChars.has(possibleWord[i].toLowerCase())) {
+            invalidCharsAdded = invalidCharsAdded.concat(wordToCheck[i]);
           }
         }
         for (let i = 0; i < 5; ++i) {
@@ -116,7 +117,7 @@ export default function WsordleSolver(props) {
           getArray = possibleWords.filter(function (str) {
             let valid = true;
             for (let i = 0; i < invalidCharsAdded.length; ++i) {
-              if (str.indexOf(invalidCharsAdded.at(i)) !== -1) {
+              if (str.indexOf(invalidCharsAdded[i]) !== -1) {
                 valid = false;
               }
             }
@@ -163,6 +164,10 @@ export default function WsordleSolver(props) {
       }
     });
     return { suggestion, second, third };
+  } catch (err) {
+    console.log(err);
+    console.log("While Mapping");
+  }
   };
 
   const handleSubmit = async (e) => {
@@ -240,7 +245,7 @@ export default function WsordleSolver(props) {
         let newArray = possibleWords.filter(function (str) {
           let valid = true;
           for (let i = 0; i < invalidChar.length; ++i) {
-            if (str.indexOf(invalidChar.at(i)) !== -1) {
+            if (str.indexOf(invalidChar[i]) !== -1) {
               valid = false;
             }
           }
@@ -256,11 +261,11 @@ export default function WsordleSolver(props) {
           for (let j = 0; j < array.length; ++j) {
             let value = array[j];
             for (let i = 0; i < value.length; ++i) {
-              if (value.at(i) !== "-") {
-                if (str.indexOf(value.at(i)) === -1) {
+              if (value[i] !== "-") {
+                if (str.indexOf(value[i]) === -1) {
                   valid = false;
                 }
-                if (str.at(i) === value.at(i)) {
+                if (str[i] === value[i]) {
                   valid = false;
                 }
               }
@@ -278,8 +283,8 @@ export default function WsordleSolver(props) {
       newArray = possibleWords.filter(function (str) {
         let valid = true;
         for (let i = 0; i < 5; ++i) {
-          if (wordString.at(i) !== "-") {
-            if (str.at(i) !== wordString.at(i)) {
+          if (wordString[i] !== "-") {
+            if (str[i] !== wordString[i]) {
               valid = false;
             }
           }
@@ -291,7 +296,6 @@ export default function WsordleSolver(props) {
 
       setAvailableWords(possibleWords);
 
-      try {
         if (possibleWords.length < 250) {
           let data = await GetBestSuggestion(
             possibleWords,
@@ -334,10 +338,6 @@ export default function WsordleSolver(props) {
             }
           }
         }
-      } catch (err) {
-        console.log(err);
-        console.log("mapping");
-      }
     } catch (err) {
       console.log(err);
       console.log("setting available words");
@@ -429,7 +429,7 @@ export default function WsordleSolver(props) {
                             boxShadow: 3,
                           }}
                         >
-                          {pastColors[arrayIndex].at(index) === "green" ? (
+                          {pastColors[arrayIndex][index] === "green" ? (
                             <TextField
                               sx={{
                                 width: 60,
@@ -450,7 +450,7 @@ export default function WsordleSolver(props) {
                               value={guessNum.toUpperCase()}
                               disabled
                             />
-                          ) : pastColors[arrayIndex].at(index) === "input" ? (
+                          ) : pastColors[arrayIndex][index] === "input" ? (
                             <TextField
                               sx={{
                                 width: 60,
@@ -471,7 +471,7 @@ export default function WsordleSolver(props) {
                               value={guessNum.toUpperCase()}
                               disabled
                             />
-                          ) : pastColors[arrayIndex].at(index) === "yellow" ? (
+                          ) : pastColors[arrayIndex][index] === "yellow" ? (
                             <TextField
                               sx={{
                                 width: 60,
@@ -1294,8 +1294,8 @@ export default function WsordleSolver(props) {
               >
                 <nav aria-label="secondary mailbox folders">
                   <List>
-                    <ListItem disablePadding key={suggestionWord}>
-                      <ListItemButton>
+                    <ListItem disablePadding>
+                    <ListItemButton component="a" href="#simple-list">
                         <ListItemText
                           primary={
                             suggestionWord !== ""
@@ -1305,8 +1305,8 @@ export default function WsordleSolver(props) {
                         />
                       </ListItemButton>
                     </ListItem>
-                    <Divider />
-                    <ListItem disablePadding key={secondBestSuggestion}>
+                    <Divider/>
+                    <ListItem disablePadding>
                       <ListItemButton component="a" href="#simple-list">
                         <ListItemText
                           primary={
@@ -1318,7 +1318,7 @@ export default function WsordleSolver(props) {
                       </ListItemButton>
                     </ListItem>
                     <Divider />
-                    <ListItem disablePadding key={thirdBestSuggestion}>
+                    <ListItem disablePadding>
                       <ListItemButton component="a" href="#simple-list">
                         <ListItemText
                           primary={
