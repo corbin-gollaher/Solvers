@@ -1,4 +1,4 @@
-export default function getBestSuggestion(possibleWords, invalidChar, allAvailableChars, commonWords) {
+export default function GetBestSuggestion(possibleWords, invalidChar, allAvailableChars, commonWords) {
   let best = new Map();
   possibleWords.forEach((possibleWord) => {
     let getArray = [];
@@ -55,6 +55,5 @@ export default function getBestSuggestion(possibleWords, invalidChar, allAvailab
       smallestSize = value;
     }
   });
-  console.log(best);
   return {suggestion, second, third}
 }

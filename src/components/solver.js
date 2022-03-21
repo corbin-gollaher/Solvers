@@ -1,11 +1,11 @@
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TextField, Typography } from "@mui/material";
-import { Button, Stack, Grid, Box } from "@mui/material";
+import { Button,Stack, Grid, Box } from "@mui/material";
 import words from "./words";
 import commonWords from "./commonWords";
 import CircularProgress from "@mui/material/CircularProgress";
-import getBestSuggestion from "./getBestSuggestion";
+import GetBestSuggestion from "./getBestSuggestion";
 import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import ListItemButton from "@mui/material/ListItemButton";
@@ -91,107 +91,128 @@ export default function WsordleSolver(props) {
   };
 
   const handleSubmitFunc = async () => {
+    console.log("loading");
     await handleSubmit();
+    console.log("done loading");
+
   };
 
   const handleSubmit = async (e) => {
-    setLoading(true);
-    let wordString = "";
-    let colorArray = [
-      firstColor,
-      secondColor,
-      thirdColor,
-      fourthColor,
-      fifthColor,
-    ];
-    let guessArray = [
-      firstGuess,
-      secondGuess,
-      thirdGuess,
-      fourthGuess,
-      fifthGuess,
-    ];
+    try {
+      let wordString = "";
+      let colorArray = [
+        firstColor,
+        secondColor,
+        thirdColor,
+        fourthColor,
+        fifthColor,
+      ];
+      let guessArray = [
+        firstGuess,
+        secondGuess,
+        thirdGuess,
+        fourthGuess,
+        fifthGuess,
+      ];
 
-    let newPastGuesses = [...pastGuesses];
-    newPastGuesses.push(guessArray);
-    setPastGuesses(newPastGuesses);
-    let newPastColors = [...pastColors];
-    newPastColors.push(colorArray);
-    setPastColors(newPastColors);
+      let newPastGuesses = [...pastGuesses];
+      newPastGuesses.push(guessArray);
+      setPastGuesses(newPastGuesses);
+      let newPastColors = [...pastColors];
+      newPastColors.push(colorArray);
+      setPastColors(newPastColors);
 
-    let posChar = "";
-    for (let i = 0; i < 5; ++i) {
-      if (colorArray[i] === "yellow") {
-        posChar = posChar + guessArray[i].toLowerCase();
-        let addThese = allAvailableChars;
-        addThese = addThese.add(guessArray[i].toLowerCase());
-        setAllAvailableChars(addThese);
-      } else {
-        posChar = posChar + "-";
-      }
-    }
-    setPossibleCharacters(posChar);
-
-    for (let i = 0; i < 5; ++i) {
-      if (colorArray[i] === "green") {
-        wordString = wordString + guessArray[i].toLowerCase();
-        let addThese = allAvailableChars;
-        addThese = addThese.add(guessArray[i].toLowerCase());
-        setAllAvailableChars(addThese);
-      } else {
-        wordString = wordString + "-";
-      }
-    }
-    setWord(wordString);
-
-    let invalidChar = alreadyGuessed;
-    for (let i = 0; i < 5; ++i) {
-      if (colorArray[i] === "input") {
-        let possibleChars = [];
-        if (
-          (alreadyGuessed.indexOf(guessArray[i]) === -1 ||
-            alreadyGuessed === "") &&
-          posChar.indexOf(guessArray[i]) === -1 &&
-          wordString.indexOf(guessArray[i] === -1)
-        )
-          invalidChar = invalidChar + guessArray[i].toLowerCase();
-      }
-    }
-    setAlreadyGuessed(invalidChar);
-
-    let possibleWords = words;
-    let array = possibleCharacterHistory;
-    array.push(posChar);
-    setPossibleCharacterHistory(array);
-
-    for (let i = 0; i < 5; ++i) {
-      //filter already guessed characters
-      let newArray = possibleWords.filter(function (str) {
-        let valid = true;
-        for (let i = 0; i < invalidChar.length; ++i) {
-          if (str.indexOf(invalidChar.at(i)) !== -1) {
-            valid = false;
-          }
+      let posChar = "";
+      for (let i = 0; i < 5; ++i) {
+        if (colorArray[i] === "yellow") {
+          posChar = posChar + guessArray[i].toLowerCase();
+          let addThese = allAvailableChars;
+          addThese = addThese.add(guessArray[i].toLowerCase());
+          setAllAvailableChars(addThese);
+        } else {
+          posChar = posChar + "-";
         }
-        return valid;
-      });
-      possibleWords = newArray;
-    }
+      }
+      setPossibleCharacters(posChar);
 
-    for (let i = 0; i < 5; ++i) {
-      //make sure possible words only includes words with possible characters
-      let newArray = possibleWords.filter(function (str) {
+      for (let i = 0; i < 5; ++i) {
+        if (colorArray[i] === "green") {
+          wordString = wordString + guessArray[i].toLowerCase();
+          let addThese = allAvailableChars;
+          addThese = addThese.add(guessArray[i].toLowerCase());
+          setAllAvailableChars(addThese);
+        } else {
+          wordString = wordString + "-";
+        }
+      }
+      setWord(wordString);
+
+      let invalidChar = alreadyGuessed;
+      for (let i = 0; i < 5; ++i) {
+        if (colorArray[i] === "input") {
+          let possibleChars = [];
+          if (
+            (alreadyGuessed.indexOf(guessArray[i]) === -1 ||
+              alreadyGuessed === "") &&
+            posChar.indexOf(guessArray[i]) === -1 &&
+            wordString.indexOf(guessArray[i] === -1)
+          )
+            invalidChar = invalidChar + guessArray[i].toLowerCase();
+        }
+      }
+      setAlreadyGuessed(invalidChar);
+
+      let possibleWords = words;
+      let array = possibleCharacterHistory;
+      array.push(posChar);
+      setPossibleCharacterHistory(array);
+
+      for (let i = 0; i < 5; ++i) {
+        //filter already guessed characters
+        let newArray = possibleWords.filter(function (str) {
+          let valid = true;
+          for (let i = 0; i < invalidChar.length; ++i) {
+            if (str.indexOf(invalidChar.at(i)) !== -1) {
+              valid = false;
+            }
+          }
+          return valid;
+        });
+        possibleWords = newArray;
+      }
+
+      for (let i = 0; i < 5; ++i) {
+        //make sure possible words only includes words with possible characters
+        let newArray = possibleWords.filter(function (str) {
+          let valid = true;
+          for (let j = 0; j < array.length; ++j) {
+            let value = array[j];
+            for (let i = 0; i < value.length; ++i) {
+              if (value.at(i) !== "-") {
+                if (str.indexOf(value.at(i)) === -1) {
+                  valid = false;
+                }
+                if (str.at(i) === value.at(i)) {
+                  valid = false;
+                }
+              }
+            }
+          }
+          return valid;
+        });
+        possibleWords = newArray;
+        newArray = [];
+      }
+
+      //Rule out words without all of the words in the word, or possible characters
+
+      let newArray = [];
+      newArray = possibleWords.filter(function (str) {
         let valid = true;
-        for (let j = 0; j < array.length; ++j) {
-          let value = array[j];
-          for (let i = 0; i < value.length; ++i) {
-            if (value.at(i) !== "-") {
-              if (str.indexOf(value.at(i)) === -1) {
-                valid = false;
-              }
-              if (str.at(i) === value.at(i)) {
-                valid = false;
-              }
+        for (let i = 0; i < 5; ++i) {
+          if (wordString.at(i) !== "-") {
+            if (str.at(i) !== wordString.at(i)) {
+              valid = false;
             }
           }
         }
@@ -199,83 +220,59 @@ export default function WsordleSolver(props) {
       });
       possibleWords = newArray;
       newArray = [];
-    }
 
-    //Rule out words without all of the words in the word, or possible characters
+      setAvailableWords(possibleWords);
 
-    let newArray = [];
-    newArray = possibleWords.filter(function (str) {
-      let valid = true;
-      for (let i = 0; i < 5; ++i) {
-        if (wordString.at(i) !== "-") {
-          if (str.at(i) !== wordString.at(i)) {
-            valid = false;
-          }
-        }
-      }
-      return valid;
-    });
-    possibleWords = newArray;
-    newArray = [];
-
-    await setAvailableWords(possibleWords);
-
-    console.log(possibleWords);
-    console.log(invalidChar);
-    console.log(allAvailableChars.size);
-
-    if (possibleWords.length < 250) {
-      let data = await getBestSuggestion(
-        possibleWords,
-        invalidChar,
-        allAvailableChars,
-        commonWords
-      );
-      setSuggestionWord(data.suggestion);
-      setSecondBestSuggestion(data.second);
-      setThirdBestSuggestion(data.third);
-    } else {
-      let found = false;
-      let data = "";
-      for (let i = 0; i < commonWords.length; ++i) {
-        if (possibleWords.indexOf(commonWords[i]) !== -1) {
-          data = commonWords[i];
-          console.log(data);
-          setSuggestionWord(data);
-        }
-      }
-      if (data === "") {
-        let first = "";
-        let second = "";
-        let third = "";
+      if (possibleWords.length < 250) {
+        let data = await GetBestSuggestion(
+          possibleWords,
+          invalidChar,
+          allAvailableChars,
+          commonWords
+        );
+        setSuggestionWord(data.suggestion);
+        setSecondBestSuggestion(data.second);
+        setThirdBestSuggestion(data.third);
+      } else {
+        let data = "";
         for (let i = 0; i < commonWords.length; ++i) {
-          if (first === "") {
-            if (isUnique(possibleWords[i])) {
-              first = possibleWords[i];
-              setSuggestionWord(possibleWords[i]);
-            }
-          } else if (second === "") {
-            if (isUnique(possibleWords[i])) {
-              second = possibleWords[i];
-              setSecondBestSuggestion(possibleWords[i]);
-            }
-          } else if (third === "") {
-            if (isUnique(possibleWords[i])) {
-              third = possibleWords[i];
-              setThirdBestSuggestion(possibleWords[i]);
+          if (possibleWords.indexOf(commonWords[i]) !== -1) {
+            data = commonWords[i];
+            setSuggestionWord(data);
+          }
+        }
+        if (data === "") {
+          let first = "";
+          let second = "";
+          let third = "";
+          for (let i = 0; i < commonWords.length; ++i) {
+            if (first === "") {
+              if (isUnique(possibleWords[i])) {
+                first = possibleWords[i];
+                setSuggestionWord(possibleWords[i]);
+              }
+            } else if (second === "") {
+              if (isUnique(possibleWords[i])) {
+                second = possibleWords[i];
+                setSecondBestSuggestion(possibleWords[i]);
+              }
+            } else if (third === "") {
+              if (isUnique(possibleWords[i])) {
+                third = possibleWords[i];
+                setThirdBestSuggestion(possibleWords[i]);
+              }
             }
           }
         }
       }
+    } catch (err) {
+      console.log(err);
     }
     clearColors();
-    setLoading(false);
   };
 
   function handleKeyPress(e) {
     var key = e.keyCode;
-    console.log(e);
-    console.log("You pressed a key: " + key);
 
     if (key === 8) {
       if (e.target.id === "box1") {
@@ -1223,7 +1220,7 @@ export default function WsordleSolver(props) {
               >
                 <nav aria-label="secondary mailbox folders">
                   <List>
-                    <ListItem disablePadding>
+                    <ListItem disablePadding key={suggestionWord}>
                       <ListItemButton>
                         <ListItemText
                           primary={
@@ -1235,7 +1232,7 @@ export default function WsordleSolver(props) {
                       </ListItemButton>
                     </ListItem>
                     <Divider />
-                    <ListItem disablePadding>
+                    <ListItem disablePadding key={secondBestSuggestion}>
                       <ListItemButton component="a" href="#simple-list">
                         <ListItemText
                           primary={
@@ -1247,7 +1244,7 @@ export default function WsordleSolver(props) {
                       </ListItemButton>
                     </ListItem>
                     <Divider />
-                    <ListItem disablePadding>
+                    <ListItem disablePadding key={thirdBestSuggestion}>
                       <ListItemButton component="a" href="#simple-list">
                         <ListItemText
                           primary={
