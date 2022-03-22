@@ -1374,7 +1374,7 @@ export default function WsordleSolver(props) {
                   maxWidth: 300,
                   bgcolor: "background.paper",
                   boxShadow: 3,
-                  m: 3,
+                  mt: 2,
                   mb: 3,
                 }}
               >
