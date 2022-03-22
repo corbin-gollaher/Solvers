@@ -1256,7 +1256,7 @@ export default function WsordleSolver(props) {
               sx={{ marginRight: 2 }}
               color="info"
             >
-              Get Suggestion
+              Suggestion
             </Button>
           )}
 
