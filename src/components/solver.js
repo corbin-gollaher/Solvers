@@ -2,6 +2,9 @@ import React from "react";
 import { useState, useEffect } from "react";
 import { TextField, Typography } from "@mui/material";
 import { Button, Stack, Grid, Box } from "@mui/material";
+import FormGroup from "@mui/material/FormGroup";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import Switch from "@mui/material/Switch";
 import words from "./words";
 import commonWords from "./commonWords";
 import CircularProgress from "@mui/material/CircularProgress";
@@ -45,6 +48,7 @@ export default function WsordleSolver(props) {
   const [pastColors, setPastColors] = useState([]);
 
   const [allAvailableChars, setAllAvailableChars] = useState(new Set());
+  const [validWordsOnly, setValidWordsOnly] = useState(false);
 
   let [page, setPage] = useState(1);
   const PER_PAGE = 24;
@@ -182,6 +186,9 @@ export default function WsordleSolver(props) {
 
   const handleSubmit = async (e) => {
     try {
+      setSuggestionWord("");
+      setSecondBestSuggestion("");
+      setThirdBestSuggestion("");
       let wordString = "";
       let colorArray = [
         firstColor,
@@ -306,43 +313,45 @@ export default function WsordleSolver(props) {
 
       setAvailableWords(possibleWords);
 
-      if (possibleWords.length < 250) {
-        let data = await GetBestSuggestion(
-          possibleWords,
-          invalidChar,
-          allAvailableChars,
-          commonWords
-        );
-        setSuggestionWord(data.suggestion);
-        setSecondBestSuggestion(data.second);
-        setThirdBestSuggestion(data.third);
-      } else {
-        let data = "";
-        for (let i = 0; i < commonWords.length; ++i) {
-          if (possibleWords.indexOf(commonWords[i]) !== -1) {
-            data = commonWords[i];
-            setSuggestionWord(data);
-          }
-        }
-        if (data === "") {
-          let first = "";
-          let second = "";
-          let third = "";
+      if (!validWordsOnly) {
+        if (possibleWords.length < 250) {
+          let data = await GetBestSuggestion(
+            possibleWords,
+            invalidChar,
+            allAvailableChars,
+            commonWords
+          );
+          setSuggestionWord(data.suggestion);
+          setSecondBestSuggestion(data.second);
+          setThirdBestSuggestion(data.third);
+        } else {
+          let data = "";
           for (let i = 0; i < commonWords.length; ++i) {
-            if (first === "") {
-              if (isUnique(possibleWords[i])) {
-                first = possibleWords[i];
-                setSuggestionWord(possibleWords[i]);
-              }
-            } else if (second === "") {
-              if (isUnique(possibleWords[i])) {
-                second = possibleWords[i];
-                setSecondBestSuggestion(possibleWords[i]);
-              }
-            } else if (third === "") {
-              if (isUnique(possibleWords[i])) {
-                third = possibleWords[i];
-                setThirdBestSuggestion(possibleWords[i]);
+            if (possibleWords.indexOf(commonWords[i]) !== -1) {
+              data = commonWords[i];
+              setSuggestionWord(data);
+            }
+          }
+          if (data === "") {
+            let first = "";
+            let second = "";
+            let third = "";
+            for (let i = 0; i < commonWords.length; ++i) {
+              if (first === "") {
+                if (isUnique(possibleWords[i])) {
+                  first = possibleWords[i];
+                  setSuggestionWord(possibleWords[i]);
+                }
+              } else if (second === "") {
+                if (isUnique(possibleWords[i])) {
+                  second = possibleWords[i];
+                  setSecondBestSuggestion(possibleWords[i]);
+                }
+              } else if (third === "") {
+                if (isUnique(possibleWords[i])) {
+                  third = possibleWords[i];
+                  setThirdBestSuggestion(possibleWords[i]);
+                }
               }
             }
           }
@@ -1223,18 +1232,34 @@ export default function WsordleSolver(props) {
             borderRadius: 1,
           }}
         >
-          <Button
-            onClick={() => {
-              handleSubmitFunc();
-              document.getElementById("box1").focus();
-            }}
-            variant="contained"
-            id="getSuggestion"
-            sx={{ marginRight: 2 }}
-            color="info"
-          >
-            Get Suggestion
-          </Button>
+          {validWordsOnly ? (
+            <Button
+              onClick={() => {
+                handleSubmitFunc();
+                document.getElementById("box1").focus();
+              }}
+              variant="contained"
+              id="getSuggestion"
+              sx={{ marginRight: 2 }}
+              color="info"
+            >
+              Valid Words
+            </Button>
+          ) : (
+            <Button
+              onClick={() => {
+                handleSubmitFunc();
+                document.getElementById("box1").focus();
+              }}
+              variant="contained"
+              id="getSuggestion"
+              sx={{ marginRight: 2 }}
+              color="info"
+            >
+              Get Suggestion
+            </Button>
+          )}
+
           <Button
             onClick={() => {
               clearStates();
@@ -1245,6 +1270,12 @@ export default function WsordleSolver(props) {
           >
             I Got It!
           </Button>
+          <Switch
+            checked={validWordsOnly}
+            onChange={() => {
+              setValidWordsOnly(!validWordsOnly);
+            }}
+          ></Switch>
         </Box>
         {loading ? (
           <Box sx={{ display: "flex" }}>
@@ -1255,75 +1286,81 @@ export default function WsordleSolver(props) {
           </Box>
         ) : (
           <>
-            {suggestionWord !== "" ? (
-              <Box
-                sx={{
-                  width: "100%",
-                  maxWidth: 300,
-                  bgcolor: "background.paper",
-                  margin: 2,
-                  boxShadow: 3,
-                }}
-              >
-                <nav aria-label="secondary mailbox folders">
-                  <List>
-                    {suggestionWord !== "" ? (
-                      <ListItem disablePadding>
-                        <ListItemButton component="a" href="#simple-list">
-                          <ListItemText
-                            primary={
-                              suggestionWord !== ""
-                                ? `Suggestion 1: ${suggestionWord.toUpperCase()}`
-                                : ""
-                            }
-                          />
-                        </ListItemButton>
-                      </ListItem>
-                    ) : (
-                      ""
-                    )}
+            {!validWordsOnly ? (
+              <>
+                {suggestionWord !== "" ? (
+                  <Box
+                    sx={{
+                      width: "100%",
+                      maxWidth: 300,
+                      bgcolor: "background.paper",
+                      margin: 2,
+                      boxShadow: 3,
+                    }}
+                  >
+                    <nav aria-label="secondary mailbox folders">
+                      <List>
+                        {suggestionWord !== "" ? (
+                          <ListItem disablePadding>
+                            <ListItemButton component="a" href="#simple-list">
+                              <ListItemText
+                                primary={
+                                  suggestionWord !== ""
+                                    ? `Suggestion 1: ${suggestionWord.toUpperCase()}`
+                                    : ""
+                                }
+                              />
+                            </ListItemButton>
+                          </ListItem>
+                        ) : (
+                          ""
+                        )}
 
-                    {secondBestSuggestion !== "" ? (
-                      <>
-                        <Divider />
-                        <ListItem disablePadding>
-                          {" "}
-                          <ListItemButton component="a" href="#simple-list">
-                            <ListItemText
-                              primary={
-                                secondBestSuggestion !== ""
-                                  ? `Suggestion 2: ${secondBestSuggestion.toUpperCase()}`
-                                  : ""
-                              }
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      </>
-                    ) : (
-                      ""
-                    )}
+                        {secondBestSuggestion !== "" ? (
+                          <>
+                            <Divider />
+                            <ListItem disablePadding>
+                              {" "}
+                              <ListItemButton component="a" href="#simple-list">
+                                <ListItemText
+                                  primary={
+                                    secondBestSuggestion !== ""
+                                      ? `Suggestion 2: ${secondBestSuggestion.toUpperCase()}`
+                                      : ""
+                                  }
+                                />
+                              </ListItemButton>
+                            </ListItem>
+                          </>
+                        ) : (
+                          ""
+                        )}
 
-                    {thirdBestSuggestion !== "" ? (
-                      <>
-                        <Divider />
-                        <ListItem disablePadding>
-                          <ListItemButton component="a" href="#simple-list">
-                            <ListItemText
-                              primary={
-                                thirdBestSuggestion !== ""
-                                  ? `Suggestion 3: ${thirdBestSuggestion.toUpperCase()}`
-                                  : ""
-                              }
-                            />
-                          </ListItemButton>
-                        </ListItem>
-                      </>
-                    ) : (
-                      ""
-                    )}
-                  </List>
-                </nav>
-              </Box>
+                        {thirdBestSuggestion !== "" ? (
+                          <>
+                            <Divider />
+                            <ListItem disablePadding>
+                              <ListItemButton component="a" href="#simple-list">
+                                <ListItemText
+                                  primary={
+                                    thirdBestSuggestion !== ""
+                                      ? `Suggestion 3: ${thirdBestSuggestion.toUpperCase()}`
+                                      : ""
+                                  }
+                                />
+                              </ListItemButton>
+                            </ListItem>
+                          </>
+                        ) : (
+                          ""
+                        )}
+                      </List>
+                    </nav>
+                  </Box>
+                ) : (
+                  ""
+                )}
+              </>
             ) : (
               ""
             )}
@@ -1335,7 +1372,8 @@ export default function WsordleSolver(props) {
                   maxWidth: 300,
                   bgcolor: "background.paper",
                   boxShadow: 3,
-                  mt: 1,
+                  m: 3,
+                  mb: 3,
                 }}
               >
                 <Accordion>
