@@ -262,8 +262,10 @@ export default function WsordleSolver(props) {
         let newArray = possibleWords.filter(function (str) {
           let valid = true;
           for (let i = 0; i < invalidChar.length; ++i) {
-            if (str.indexOf(invalidChar[i]) !== -1) {
-              valid = false;
+            if (!allAvailableChars.has(invalidChar[i])) {
+              if (str.indexOf(invalidChar[i]) !== -1) {
+                valid = false;
+              }
             }
           }
           return valid;

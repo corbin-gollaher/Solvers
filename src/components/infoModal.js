@@ -102,18 +102,6 @@ export default function InfoModal() {
           </Typography>
           <Divider />
           <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
-            What bugs does it have?
-          </Typography>
-          <Typography gutterBottom>
-            Consider the word solution is "BLEAK", you guess "TEAMS" which gives
-            you a yellow 'E' on the second letter. Then you guess "BLEED".
-            Wordle will make the 'E' that matches with "BLEAK", but make the
-            second 'E' gray. If you input the second 'E' as grey in the solver,
-            it will break it. Change that 'E' to yellow in the solver, and the
-            solver will work just fine.
-          </Typography>
-          <Divider />
-          <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
             Speed Issues?
           </Typography>
           <Typography gutterBottom>
