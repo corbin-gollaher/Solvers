@@ -101,6 +101,20 @@ export default function WsordleSolver(props) {
     setFifthGuess("");
   };
 
+  const handleButtonFill = (word) => {
+    setFirstGuess(word[0]);
+    setSecondGuess(word[1]);
+    setThirdGuess(word[2]);
+    setFourthGuess(word[3]);
+    setFifthGuess(word[4]);
+
+    setFirstColor("input");
+    setSecondColor("input");
+    setThirdColor("input");
+    setFourthColor("input");
+    setFifthColor("input");
+  };
+
   const handleSubmitFunc = async () => {
     console.log("loading");
     setLoading(true);
@@ -1304,7 +1318,12 @@ export default function WsordleSolver(props) {
                       <List>
                         {suggestionWord !== "" ? (
                           <ListItem disablePadding>
-                            <ListItemButton component="a" href="#simple-list">
+                            <ListItemButton
+                              component="a"
+                              onClick={() =>
+                                handleButtonFill(suggestionWord.toLowerCase())
+                              }
+                            >
                               <ListItemText
                                 primary={
                                   suggestionWord !== ""
@@ -1323,7 +1342,14 @@ export default function WsordleSolver(props) {
                             <Divider />
                             <ListItem disablePadding>
                               {" "}
-                              <ListItemButton component="a" href="#simple-list">
+                              <ListItemButton
+                                component="a"
+                                onClick={() =>
+                                  handleButtonFill(
+                                    secondBestSuggestion.toLowerCase()
+                                  )
+                                }
+                              >
                                 <ListItemText
                                   primary={
                                     secondBestSuggestion !== ""
@@ -1342,7 +1368,14 @@ export default function WsordleSolver(props) {
                           <>
                             <Divider />
                             <ListItem disablePadding>
-                              <ListItemButton component="a" href="#simple-list">
+                              <ListItemButton
+                                component="a"
+                                onClick={() =>
+                                  handleButtonFill(
+                                    thirdBestSuggestion.toLowerCase()
+                                  )
+                                }
+                              >
                                 <ListItemText
                                   primary={
                                     thirdBestSuggestion !== ""
@@ -1406,7 +1439,11 @@ export default function WsordleSolver(props) {
                       >
                         {_DATA.currentData().map((word) => {
                           return (
-                            <ListItem key={word}>
+                            <ListItem
+                              key={word}
+                              onClick={() => handleButtonFill(word)}
+                              style={{ cursor: "pointer" }}
+                            >
                               <Typography>{word.toUpperCase()}</Typography>
                             </ListItem>
                           );
