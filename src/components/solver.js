@@ -130,68 +130,134 @@ export default function WsordleSolver(props) {
     commonWords
   ) => {
     try {
-      let best = new Map();
-      possibleWords.forEach((possibleWord) => {
-        let getArray = [];
-        possibleWords.forEach((wordToCheck) => {
-          let invalidCharsAdded = invalidChar;
-          for (let i = 0; i < wordToCheck.length; ++i) {
-            if (!AvailableChars.has(possibleWord[i].toLowerCase())) {
-              invalidCharsAdded = invalidCharsAdded.concat(wordToCheck[i]);
+      if (possibleWords.length > 200) {
+        //Creates a weight map based on number of words with the same character at specific indices
+        let weightMap = new Map();
+        possibleWords.forEach((word) => {
+          for (let i = 0; i < word.length; i++) {
+            if (weightMap.get(`${i}-${word[i]}`) === undefined) {
+              weightMap.set(`${i}-${word[i]}`, 1);
+            } else {
+              weightMap.set(
+                `${i}-${word[i]}`,
+                weightMap.get(`${i}-${word[i]}`) + 1
+              );
             }
           }
-          for (let i = 0; i < 5; ++i) {
-            //filter already guessed characters
-            getArray = possibleWords.filter(function (str) {
-              let valid = true;
-              for (let i = 0; i < invalidCharsAdded.length; ++i) {
-                if (str.indexOf(invalidCharsAdded[i]) !== -1) {
-                  valid = false;
-                }
-              }
-              return valid;
-            });
-          }
-          best.set(wordToCheck, getArray.length);
         });
-      });
 
-      let smallestSize = 15000;
-      let suggestion = "";
-      let second = "";
-      let third = "";
-      best.forEach((value, key) => {
-        if (
-          value < smallestSize ||
-          third === "" ||
-          second === "" ||
-          suggestion === ""
-        ) {
-          third = second;
-          second = suggestion;
-          suggestion = key;
-          smallestSize = value;
-        } else if (value === smallestSize) {
-          let keyBoolean = false;
-          let suggestionBoolean = false;
-          commonWords.forEach((item) => {
-            if (item === key) {
-              keyBoolean = true;
+        //Parses through the weight map and adds the values together to create a word map,
+        //major precidence is given to words with all unique characters
+        let wordWeightMap = new Map();
+        possibleWords.forEach((word) => {
+          let weight = 0;
+          for (let i = 0; i < word.length; i++) {
+            weight = weight + weightMap.get(`${i}-${word[i]}`);
+          }
+          if (isUnique(word)) {
+            weight = weight + 5000;
+          }
+          wordWeightMap.set(word, weight);
+        });
+
+        //Get the largest weighted word in the map
+        let max = 0;
+        let firstSuggestion = "";
+        let secondMax = 0;
+        let secondSuggestion = "";
+        let thirdMax = 0;
+        let thirdSuggestion = "";
+
+        wordWeightMap.forEach((key, value) => {
+          let maxCopy = max;
+          let firstSugCopy = firstSuggestion;
+          let secondCopy = secondMax;
+          let secondSugCopy = secondSuggestion;
+          if (key >= max) {
+            max = key;
+            secondMax = maxCopy;
+            thirdMax = secondCopy;
+            firstSuggestion = value;
+            secondSuggestion = firstSugCopy;
+            thirdSuggestion = secondSugCopy;
+          } else if (key >= secondMax) {
+            secondMax = key;
+            thirdMax = secondCopy;
+            secondSuggestion = value;
+            thirdSuggestion = secondSugCopy;
+          } else if (key >= thirdMax) {
+            thirdMax = key;
+          }
+        });
+        return {
+          suggestion: firstSuggestion,
+          second: secondSuggestion,
+          third: thirdSuggestion,
+        };
+      } else {
+        let best = new Map();
+        possibleWords.forEach((possibleWord) => {
+          let getArray = [];
+          possibleWords.forEach((wordToCheck) => {
+            let invalidCharsAdded = invalidChar;
+            for (let i = 0; i < wordToCheck.length; ++i) {
+              if (!AvailableChars.has(possibleWord[i].toLowerCase())) {
+                invalidCharsAdded = invalidCharsAdded.concat(wordToCheck[i]);
+              }
             }
-            if (item === suggestion) {
-              suggestionBoolean = true;
+            for (let i = 0; i < 5; ++i) {
+              //filter already guessed characters
+              getArray = possibleWords.filter(function (str) {
+                let valid = true;
+                for (let i = 0; i < invalidCharsAdded.length; ++i) {
+                  if (str.indexOf(invalidCharsAdded[i]) !== -1) {
+                    valid = false;
+                  }
+                }
+                return valid;
+              });
             }
+            best.set(wordToCheck, getArray.length);
           });
+        });
 
-          if (keyBoolean && !suggestionBoolean) {
+        let smallestSize = 15000;
+        let suggestion = "";
+        let second = "";
+        let third = "";
+        best.forEach((value, key) => {
+          if (
+            value < smallestSize ||
+            third === "" ||
+            second === "" ||
+            suggestion === ""
+          ) {
             third = second;
             second = suggestion;
             suggestion = key;
+            smallestSize = value;
+          } else if (value === smallestSize) {
+            let keyBoolean = false;
+            let suggestionBoolean = false;
+            commonWords.forEach((item) => {
+              if (item === key) {
+                keyBoolean = true;
+              }
+              if (item === suggestion) {
+                suggestionBoolean = true;
+              }
+            });
+
+            if (keyBoolean && !suggestionBoolean) {
+              third = second;
+              second = suggestion;
+              suggestion = key;
+            }
+            smallestSize = value;
           }
-          smallestSize = value;
-        }
-      });
-      return { suggestion, second, third };
+        });
+        return { suggestion, second, third };
+      }
     } catch (err) {
       console.log(err);
       console.log("While Mapping");
@@ -330,7 +396,7 @@ export default function WsordleSolver(props) {
       setAvailableWords(possibleWords);
 
       if (!validWordsOnly) {
-        if (possibleWords.length < 250) {
+        if (possibleWords.length < 14000) {
           let data = await GetBestSuggestion(
             possibleWords,
             invalidChar,

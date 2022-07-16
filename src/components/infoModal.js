@@ -86,9 +86,12 @@ export default function InfoModal() {
           </Typography>
           <Typography gutterBottom>
             The solver will pull from available words from a 12,000 word bank.
-            Common words take precedence over lesser known words, and the
-            suggestions will create the smallest possible set of resulting
-            words.
+            If the resulting possible words is greater than 200 items, the
+            solver will calculate a weight for each word based on uniqueness of
+            characters, and answers eliminated from the possible word set if
+            guessed. If the possible words are less than 200, the solver will
+            brute force the best word, while giving precedence to a list of more
+            common words as a tie breaker.
           </Typography>
           <Divider />
           <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
@@ -101,13 +104,13 @@ export default function InfoModal() {
             decrease the solution set the most.
           </Typography>
           <Divider />
-          <Typography sx={{ mt: 2 }} gutterBottom variant="h6">
-            Speed Issues?
+          <Typography gutterBottom variant="h6" sx={{ mt: 2 }}>
+            Why not just brute force the answer everytime?
           </Typography>
           <Typography gutterBottom>
-            I have it limited to give the best solution with less than 250
-            possible words. If the available words is over 250, it will return a
-            valid solution with every letter being unique.
+            In order to brute force an answer from a large list of possible
+            words, the calculations required grow exponentially. It would take
+            years to brute force the entire 12,000 word dictionary.
           </Typography>
         </DialogContent>
         <DialogActions>

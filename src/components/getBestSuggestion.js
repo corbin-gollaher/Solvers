@@ -1,4 +1,9 @@
-export default function GetBestSuggestion(possibleWords, invalidChar, allAvailableChars, commonWords) {
+export default function GetBestSuggestion(
+  possibleWords,
+  invalidChar,
+  allAvailableChars,
+  commonWords
+) {
   let best = new Map();
   possibleWords.forEach((possibleWord) => {
     let getArray = [];
@@ -10,7 +15,7 @@ export default function GetBestSuggestion(possibleWords, invalidChar, allAvailab
         }
       }
       for (let i = 0; i < 5; ++i) {
-        //filter already guessed characters
+        //filter already guessed characters3
         getArray = possibleWords.filter(function (str) {
           let valid = true;
           for (let i = 0; i < invalidCharsAdded.length; ++i) {
@@ -30,7 +35,12 @@ export default function GetBestSuggestion(possibleWords, invalidChar, allAvailab
   let second = "";
   let third = "";
   best.forEach((value, key) => {
-    if (value < smallestSize || third === "" || second === "" || suggestion === "") {
+    if (
+      value < smallestSize ||
+      third === "" ||
+      second === "" ||
+      suggestion === ""
+    ) {
       third = second;
       second = suggestion;
       suggestion = key;
@@ -55,5 +65,5 @@ export default function GetBestSuggestion(possibleWords, invalidChar, allAvailab
       smallestSize = value;
     }
   });
-  return {suggestion, second, third}
+  return { suggestion, second, third };
 }
