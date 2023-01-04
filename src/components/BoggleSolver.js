@@ -68,6 +68,7 @@ export default function BoggleSolver() {
   };
 
   const editBoard = (rowIndex, colIndex, letter) => {
+    letter = letter.toLowerCase();
     if (board[rowIndex][colIndex].letter === "qu" && letter === "q") {
       letter = "";
     } else if (letter === "q") {
