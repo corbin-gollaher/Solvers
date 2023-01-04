@@ -1,5 +1,12 @@
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
-import { Box, Button, TextField, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  CircularProgress,
+  ListItemButton,
+  TextField,
+  Typography,
+} from "@mui/material";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
@@ -9,9 +16,15 @@ import Pagination from "@mui/material/Pagination";
 import React, { useState } from "react";
 import scrabbleWords from "../scrabbleWords";
 import usePagination from "./pagination";
+import { Trie } from "./Trie";
 
 const M = 4;
 const N = 4;
+
+const trie = new Trie();
+for (let [key, value] of scrabbleWords) {
+  trie.insert(key);
+}
 
 export default function BoggleSolver() {
   const [board, setBoard] = useState([
@@ -42,6 +55,7 @@ export default function BoggleSolver() {
   ]);
   const [loading, setLoading] = useState(false);
   const [validWords, setValidWords] = useState([]);
+  const [currSelection, setCurrSelection] = useState(null);
   let [page, setPage] = useState(1);
   const PER_PAGE = 24;
 
@@ -54,47 +68,146 @@ export default function BoggleSolver() {
   };
 
   const editBoard = (rowIndex, colIndex, letter) => {
+    if (board[rowIndex][colIndex].letter === "qu" && letter === "q") {
+      letter = "";
+    } else if (letter === "q") {
+      letter = "qu";
+    }
     let boardCopy = JSON.parse(JSON.stringify(board));
     boardCopy[rowIndex][colIndex].letter = letter;
     setBoard(boardCopy);
   };
 
-  const dfs = (i, j, str, validWords, currBoard) => {
+  const dfs = (i, j, store, validWords, currBoard) => {
     currBoard[i][j].visited = true;
-    str = str + currBoard[i][j].letter;
 
-    if (isWord(str) && str.length >= 3) {
-      validWords.push(str);
+    let str = store.str;
+
+    store = {
+      str: str + currBoard[i][j].letter,
+      coordinates: [...store.coordinates, `${i}${j}`],
+    };
+
+    if (isWord(store.str) && store.str.length >= 3) {
+      validWords.push(JSON.parse(JSON.stringify(store)));
     }
 
-    for (var row = i - 1; row <= i + 1 && row < M; row++)
-      for (var col = j - 1; col <= j + 1 && col < N; col++)
-        if (row >= 0 && col >= 0 && !currBoard[row][col].visited)
-          dfs(row, col, str, validWords, currBoard);
+    if (trie.find(store.str).length > 0) {
+      for (var row = i - 1; row <= i + 1 && row < M; row++)
+        for (var col = j - 1; col <= j + 1 && col < N; col++)
+          if (row >= 0 && col >= 0 && !currBoard[row][col].visited)
+            dfs(row, col, store, validWords, currBoard);
+    }
 
-    str = "" + str[str.length - 1];
+    if (store.str.length >= 2) {
+      if (
+        store.str[store.str.length - 1] === "u" &&
+        store.str[store.str.length - 2] === "q"
+      ) {
+        store.str = "" + store.str[store.str.length - 2];
+      } else {
+        store.str = "" + store.str[store.str.length - 1];
+      }
+    } else {
+      store.str = "" + store.str[store.str.length - 1];
+    }
+
+    store.coordinates.pop();
     currBoard[i][j].visited = false;
     return validWords;
   };
 
   const isWord = (word) => {
-    return scrabbleWords.has(word);
+    return trie.contains(word).contained;
   };
 
   const startDFS = () => {
+    setValidWords([]);
+    setCurrSelection(null);
     let str = "";
-    let validWords = new Set();
+    let validWords = [];
     let boardCopy = JSON.parse(JSON.stringify(board));
     setLoading(true);
     for (let row = 0; row < boardCopy.length; row++) {
       for (let col = 0; col < boardCopy[row].length; col++) {
-        dfs(row, col, "", [], boardCopy).forEach((word) =>
-          validWords.add(word)
+        dfs(row, col, { str: "", coordinates: [] }, [], boardCopy).forEach(
+          (word) => validWords.push(word)
         );
       }
     }
+    validWords = validWords.reduce(function (p, c) {
+      if (
+        !p.some(function (el) {
+          return el.str === c.str;
+        })
+      )
+        p.push(c);
+      return p;
+    }, []);
     setLoading(false);
     setValidWords(Array.from(validWords));
+  };
+
+  function shuffle(array) {
+    let currentIndex = array.length,
+      randomIndex;
+    while (currentIndex != 0) {
+      randomIndex = Math.floor(Math.random() * currentIndex);
+      currentIndex--;
+      [array[currentIndex], array[randomIndex]] = [
+        array[randomIndex],
+        array[currentIndex],
+      ];
+    }
+
+    return array;
+  }
+
+  const generateRandomBoard = () => {
+    setValidWords([]);
+    setCurrSelection(null);
+    let distributions = shuffle([
+      "aaafrs",
+      "aaeeee",
+      "aafirs",
+      "adennn",
+      "aeeeem",
+      "aeegmu",
+      "aegmnn",
+      "afirsy",
+      "bjkqxz",
+      "ccenst",
+      "ceiilt",
+      "ceilpt",
+      "ceipst",
+      "ddhnot",
+      "dhhlor",
+      "dhlnor",
+      "dhlnor",
+      "eiiitt",
+      "emottt",
+      "ensssu",
+      "fiprsy",
+      "gorrvw",
+      "iprrry",
+      "nootuw",
+      "ooottu",
+    ]);
+    let newBoard = Array.from({ length: M }, (v, i) => i).map((row, rowIndex) =>
+      Array.from({ length: N }, (v, i) => {
+        let currLetter =
+          distributions[(rowIndex + 1) * 4 + i][
+            Math.floor(
+              Math.random() * distributions[(rowIndex + 1) * 4 + i].length
+            )
+          ];
+        return {
+          letter: currLetter === "q" ? currLetter + "u" : currLetter,
+          visited: false,
+        };
+      })
+    );
+    setBoard(newBoard);
   };
 
   return (
@@ -126,13 +239,27 @@ export default function BoggleSolver() {
                   (obj, colIndex) => {
                     return (
                       <TextField
+                        sx={{
+                          cursor: "pointer",
+                          "& .MuiFilledInput-root": {
+                            bgcolor: !currSelection
+                              ? ""
+                              : currSelection.coordinates.includes(
+                                  `${rowIndex}${colIndex}`
+                                )
+                              ? "success.main"
+                              : "",
+                          },
+                          m: 0.5,
+                        }}
+                        variant="filled"
                         inputProps={{
                           style: {
                             fontSize: 40,
                             textAlign: "center",
                             padding: 0,
                           },
-                          maxLength: 1,
+                          maxLength: 2,
                         }}
                         value={board[rowIndex][colIndex].letter}
                         onChange={(e) =>
@@ -178,9 +305,13 @@ export default function BoggleSolver() {
                   >
                     {_DATA.currentData().map((word) => {
                       return (
-                        <ListItem key={word} style={{ cursor: "pointer" }}>
-                          <Typography>{word.toUpperCase()}</Typography>
-                        </ListItem>
+                        <ListItemButton
+                          key={word.str}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => setCurrSelection(word)}
+                        >
+                          <Typography>{word.str.toUpperCase()}</Typography>
+                        </ListItemButton>
                       );
                     })}
                   </Box>
@@ -195,10 +326,19 @@ export default function BoggleSolver() {
           variant="contained"
           color="info"
           onClick={startDFS}
-          sx={{ mt: 3 }}
+          sx={{ mt: 3, m: 1 }}
         >
           Solve with DFS
         </Button>
+        <Button
+          variant="contained"
+          color="info"
+          onClick={generateRandomBoard}
+          sx={{ mt: 3, m: 1 }}
+        >
+          Random Board
+        </Button>
+        {loading && <CircularProgress fontSize="inherit" />}
       </Box>
     </Box>
   );
