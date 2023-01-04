@@ -6,6 +6,7 @@ import {
   ListItemButton,
   TextField,
   Typography,
+  Link,
 } from "@mui/material";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -14,7 +15,7 @@ import List from "@mui/material/List";
 import ListItem from "@mui/material/ListItem";
 import Pagination from "@mui/material/Pagination";
 import React, { useState } from "react";
-import scrabbleWords from "../scrabbleWords";
+import { scrabbleWords } from "../scrabbleWords";
 import usePagination from "./pagination";
 import { Trie } from "./Trie";
 
@@ -22,9 +23,7 @@ const M = 4;
 const N = 4;
 
 const trie = new Trie();
-for (let [key, value] of scrabbleWords) {
-  trie.insert(key);
-}
+scrabbleWords.forEach((word) => trie.insert(word));
 
 export default function BoggleSolver() {
   const [board, setBoard] = useState([
@@ -231,6 +230,7 @@ export default function BoggleSolver() {
           sx={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
+            mb: 2,
           }}
         >
           {M && N && (
@@ -274,6 +274,15 @@ export default function BoggleSolver() {
             </>
           )}
         </Box>
+        {currSelection && (
+          <Link
+            href={`https://www.collinsdictionary.com/dictionary/english/${currSelection.str}`}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Click Here for Selected Word Definition
+          </Link>
+        )}
         {validWords.length > 0 ? (
           <Box
             sx={{
