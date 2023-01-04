@@ -7,6 +7,7 @@ import {
   TextField,
   Typography,
   Link,
+  ButtonBase,
 } from "@mui/material";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
@@ -52,7 +53,9 @@ export default function BoggleSolver() {
       { letter: "a", visited: false },
     ],
   ]);
+  const [smallestToLargest, setSmallestToLargest] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [totalPoints, setTotalPoints] = useState(0);
   const [validWords, setValidWords] = useState([]);
   const [currSelection, setCurrSelection] = useState(null);
   let [page, setPage] = useState(1);
@@ -121,7 +124,21 @@ export default function BoggleSolver() {
     return trie.contains(word).contained;
   };
 
+  const sortResultsAndSave = (arr) => {
+    setValidWords(
+      arr.sort((a, b) => {
+        if (smallestToLargest) {
+          return a.str.length - b.str.length || a.str.localeCompare(b.str);
+        } else {
+          return b.str.length - a.str.length || a.str.localeCompare(b.str);
+        }
+      })
+    );
+    setSmallestToLargest(!smallestToLargest);
+  };
+
   const startDFS = () => {
+    setPage(1);
     setValidWords([]);
     setCurrSelection(null);
     let str = "";
@@ -145,7 +162,8 @@ export default function BoggleSolver() {
       return p;
     }, []);
     setLoading(false);
-    setValidWords(Array.from(validWords));
+    sortResultsAndSave(Array.from(validWords));
+    setTotalPoints(getTotalPoints(Array.from(validWords)));
   };
 
   function shuffle(array) {
@@ -162,6 +180,24 @@ export default function BoggleSolver() {
 
     return array;
   }
+
+  const getTotalPoints = (arr) => {
+    let total = 0;
+    arr.forEach((x) => {
+      if (x.str.length >= 8) {
+        total += 11;
+      } else if (x.str.length >= 7) {
+        total += 4;
+      } else if (x.str.length >= 6) {
+        total += 3;
+      } else if (x.str.length >= 5) {
+        total += 2;
+      } else if (x.str.length >= 3) {
+        total += 1;
+      }
+    });
+    return total;
+  };
 
   const generateRandomBoard = () => {
     setValidWords([]);
@@ -294,8 +330,17 @@ export default function BoggleSolver() {
             }}
           >
             <Accordion>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography>Valid Words: {validWords.length}</Typography>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <Typography>
+                  Valid Words: {validWords.length} Total Points: {totalPoints}
+                </Typography>
               </AccordionSummary>
               <AccordionDetails>
                 <Pagination
@@ -326,6 +371,16 @@ export default function BoggleSolver() {
                     })}
                   </Box>
                 </List>
+                <Button
+                  variant="contained"
+                  color="info"
+                  onClick={() => {
+                    sortResultsAndSave(validWords);
+                  }}
+                >
+                  Sort by
+                  {smallestToLargest ? " increasing size" : " decreasing size"}
+                </Button>
               </AccordionDetails>
             </Accordion>
           </Box>
