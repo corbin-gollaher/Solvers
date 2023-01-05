@@ -85,6 +85,7 @@ export default function BoggleSolver() {
   };
 
   const editBoardTess = (text) => {
+    text = text.toLowerCase();
     let boardCopy = JSON.parse(JSON.stringify(board));
     let currIndex = 0;
     for (let row = 0; row < 4; row++) {
