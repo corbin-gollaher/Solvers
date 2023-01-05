@@ -19,7 +19,7 @@ import React, { useState } from "react";
 import { scrabbleWords } from "../scrabbleWords";
 import usePagination from "./pagination";
 import { Trie } from "./Trie";
-
+import Tesseract, { createWorker } from "tesseract.js";
 const M = 4;
 const N = 4;
 
@@ -54,10 +54,13 @@ export default function BoggleSolver() {
     ],
   ]);
   const [smallestToLargest, setSmallestToLargest] = useState(true);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedImage64, setSelectedImage64] = useState(null);
   const [loading, setLoading] = useState(false);
   const [totalPoints, setTotalPoints] = useState(0);
   const [validWords, setValidWords] = useState([]);
   const [currSelection, setCurrSelection] = useState(null);
+  const [imageText, setImageText] = useState("");
   let [page, setPage] = useState(1);
   const PER_PAGE = 24;
 
@@ -78,6 +81,29 @@ export default function BoggleSolver() {
     }
     let boardCopy = JSON.parse(JSON.stringify(board));
     boardCopy[rowIndex][colIndex].letter = letter;
+    setBoard(boardCopy);
+  };
+
+  const editBoardTess = (text) => {
+    let boardCopy = JSON.parse(JSON.stringify(board));
+    let currIndex = 0;
+    for (let row = 0; row < 4; row++) {
+      for (let col = 0; col < 4; col++) {
+        text = text.toLowerCase();
+        if (board[row][col].letter === "qu" && text === "q") {
+          text = "";
+        } else if (text === "q") {
+          text = "qu";
+        }
+        boardCopy[row][col].letter = text[currIndex];
+        if (col === 3) {
+          currIndex += 2;
+        } else {
+          currIndex += 1;
+        }
+      }
+    }
+
     setBoard(boardCopy);
   };
 
@@ -246,6 +272,46 @@ export default function BoggleSolver() {
     setBoard(newBoard);
   };
 
+  const tesseract = async () => {
+    const worker = await createWorker({
+      logger: (m) => console.log(m),
+    });
+
+    (async () => {
+      await worker.loadLanguage("eng");
+      await worker.initialize("eng");
+      await worker.setParameters({
+        tessedit_char_whitelist:
+          "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
+        preserve_interword_spaces: "0",
+      });
+      const {
+        data: { text },
+      } = await worker.recognize(selectedImage64);
+
+      setImageText(text);
+
+      if (text.length === 20) {
+        editBoardTess(text);
+      }
+
+      await worker.terminate();
+    })();
+  };
+
+  function getBase64(file) {
+    var reader = new FileReader();
+    file.filter = "grayscale(100%)";
+
+    reader.readAsDataURL(file);
+    reader.onload = function () {
+      setSelectedImage64(reader.result);
+    };
+    reader.onerror = function (error) {
+      console.log("Error: ", error);
+    };
+  }
+
   return (
     <Box
       sx={{
@@ -262,6 +328,92 @@ export default function BoggleSolver() {
         <Typography variant="h5" sx={{ m: 2 }}>
           DFS Boggle Solver
         </Typography>
+        <Box
+          sx={{
+            maxWidth: 500,
+            bgcolor: "background.paper",
+            boxShadow: 3,
+            mt: 2,
+            mb: 3,
+          }}
+        >
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              sx={{
+                display: "flex",
+                justifyContent: "flex-start",
+              }}
+            >
+              <Typography>
+                <strong>Boggle Board Image Recognition</strong>
+              </Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box sx={{ textAlign: "left" }}>
+                <Typography sx={{ mb: 2 }} variant="body" textAlign={"left"}>
+                  Upload an image to get started, currently, the only images
+                  that work at all really are images of typed text with no skew,
+                  no background, and no borders. The goal is to hopefully expand
+                  functionality to take a picture of your boggle game, and have
+                  it autopopulate the solver. If the picture works as expected
+                  with the recognition, then it will autopopulate the board
+                  above
+                </Typography>
+              </Box>
+              <div style={{ marginTop: 20 }}>
+                {selectedImage ? (
+                  <div>
+                    <img
+                      alt="not fount"
+                      width={"250px"}
+                      src={URL.createObjectURL(selectedImage)}
+                    />
+                    <br />
+                    <Button
+                      variant="contained"
+                      color="info"
+                      onClick={() => {
+                        setSelectedImage(null);
+                        setSelectedImage64(null);
+                        setImageText("");
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                ) : (
+                  <input
+                    type="file"
+                    name="myImage"
+                    onChange={(event) => {
+                      setSelectedImage(event.target.files[0]);
+                      getBase64(event.target.files[0]);
+                    }}
+                  />
+                )}
+              </div>
+              {selectedImage64 && imageText === "" ? (
+                <Button
+                  variant="contained"
+                  color="info"
+                  onClick={tesseract}
+                  sx={{ m: 3 }}
+                >
+                  Analyze Image
+                </Button>
+              ) : (
+                <Box>
+                  {imageText !== "" && (
+                    <Typography sx={{ mt: 3 }}>
+                      Analyzed Text: {imageText}
+                    </Typography>
+                  )}
+                </Box>
+              )}
+            </AccordionDetails>
+          </Accordion>
+        </Box>
         <Box
           sx={{
             display: "grid",
@@ -339,7 +491,9 @@ export default function BoggleSolver() {
                 }}
               >
                 <Typography>
-                  Valid Words: {validWords.length} Total Points: {totalPoints}
+                  <strong>
+                    Valid Words: {validWords.length} Total Points: {totalPoints}
+                  </strong>
                 </Typography>
               </AccordionSummary>
               <AccordionDetails>
@@ -387,11 +541,12 @@ export default function BoggleSolver() {
         ) : (
           <Box>No Valid Words</Box>
         )}
+
         <Button
           variant="contained"
           color="info"
           onClick={startDFS}
-          sx={{ mt: 3, m: 1 }}
+          sx={{ mt: 3, m: 1, mb: 5 }}
         >
           Solve with DFS
         </Button>
@@ -399,7 +554,7 @@ export default function BoggleSolver() {
           variant="contained"
           color="info"
           onClick={generateRandomBoard}
-          sx={{ mt: 3, m: 1 }}
+          sx={{ mt: 3, m: 1, mb: 5 }}
         >
           Random Board
         </Button>
