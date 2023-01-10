@@ -3,23 +3,21 @@ import {
   Box,
   Button,
   CircularProgress,
+  Link,
   ListItemButton,
   TextField,
   Typography,
-  Link,
-  ButtonBase,
 } from "@mui/material";
 import Accordion from "@mui/material/Accordion";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import List from "@mui/material/List";
-import ListItem from "@mui/material/ListItem";
 import Pagination from "@mui/material/Pagination";
 import React, { useState } from "react";
+import { createWorker } from "tesseract.js";
 import { scrabbleWords } from "../scrabbleWords";
 import usePagination from "./pagination";
 import { Trie } from "./Trie";
-import Tesseract, { createWorker } from "tesseract.js";
 const M = 4;
 const N = 4;
 
@@ -104,7 +102,6 @@ export default function BoggleSolver() {
         }
       }
     }
-
     setBoard(boardCopy);
   };
 
@@ -319,6 +316,7 @@ export default function BoggleSolver() {
         display: "flex",
         textAlign: "center",
         justifyContent: "center",
+        p: 2,
       }}
     >
       <Box
@@ -329,6 +327,132 @@ export default function BoggleSolver() {
         <Typography variant="h5" sx={{ m: 2 }}>
           DFS Boggle Solver
         </Typography>
+        <Box
+          sx={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            mb: 2,
+          }}
+        >
+          {M && N && (
+            <>
+              {Array.from({ length: M }, (v, i) => i).map((row, rowIndex) => {
+                return Array.from({ length: N }, (v, i) => i).map(
+                  (obj, colIndex) => {
+                    return (
+                      <TextField
+                        sx={{
+                          cursor: "pointer",
+                          "& .MuiFilledInput-root": {
+                            bgcolor: !currSelection
+                              ? ""
+                              : currSelection.coordinates.includes(
+                                  `${rowIndex}${colIndex}`
+                                )
+                              ? "success.main"
+                              : "",
+                          },
+                          m: 0.5,
+                        }}
+                        variant="filled"
+                        inputProps={{
+                          style: {
+                            fontSize: 40,
+                            textAlign: "center",
+                            padding: 0,
+                          },
+                          maxLength: 2,
+                        }}
+                        value={board[rowIndex][colIndex].letter}
+                        onChange={(e) =>
+                          editBoard(rowIndex, colIndex, e.target.value)
+                        }
+                      ></TextField>
+                    );
+                  }
+                );
+              })}
+            </>
+          )}
+        </Box>
+        {currSelection && (
+          <Link
+            href={`https://www.collinsdictionary.com/dictionary/english/${currSelection.str}`}
+            rel="noopener noreferrer"
+            target="_blank"
+          >
+            Click Here for Selected Word Definition
+          </Link>
+        )}
+        {validWords.length > 0 ? (
+          <Box
+            sx={{
+              bgcolor: "background.paper",
+              boxShadow: 3,
+              mt: 2,
+              mb: 3,
+            }}
+          >
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ExpandMoreIcon />}
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "flex-start",
+                }}
+              >
+                <Typography>
+                  <strong>
+                    Valid Words: {validWords.length} Total Points: {totalPoints}
+                  </strong>
+                </Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Pagination
+                  count={count}
+                  size="small"
+                  page={page}
+                  onChange={handleChange}
+                  color="success"
+                />
+
+                <List p="15" pt="3" spacing={2}>
+                  <Box
+                    sx={{
+                      display: "grid",
+                      gridTemplateColumns: "repeat(3, 1fr)",
+                    }}
+                  >
+                    {_DATA.currentData().map((word) => {
+                      return (
+                        <ListItemButton
+                          key={word.str}
+                          style={{ cursor: "pointer" }}
+                          onClick={() => setCurrSelection(word)}
+                        >
+                          <Typography>{word.str.toUpperCase()}</Typography>
+                        </ListItemButton>
+                      );
+                    })}
+                  </Box>
+                </List>
+                <Button
+                  variant="contained"
+                  color="info"
+                  onClick={() => {
+                    sortResultsAndSave(validWords);
+                  }}
+                >
+                  Sort by
+                  {smallestToLargest ? " increasing size" : " decreasing size"}
+                </Button>
+              </AccordionDetails>
+            </Accordion>
+          </Box>
+        ) : (
+          <Box>No Valid Words</Box>
+        )}
         <Box
           sx={{
             maxWidth: 500,
@@ -415,133 +539,6 @@ export default function BoggleSolver() {
             </AccordionDetails>
           </Accordion>
         </Box>
-        <Box
-          sx={{
-            display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
-            mb: 2,
-          }}
-        >
-          {M && N && (
-            <>
-              {Array.from({ length: M }, (v, i) => i).map((row, rowIndex) => {
-                return Array.from({ length: N }, (v, i) => i).map(
-                  (obj, colIndex) => {
-                    return (
-                      <TextField
-                        sx={{
-                          cursor: "pointer",
-                          "& .MuiFilledInput-root": {
-                            bgcolor: !currSelection
-                              ? ""
-                              : currSelection.coordinates.includes(
-                                  `${rowIndex}${colIndex}`
-                                )
-                              ? "success.main"
-                              : "",
-                          },
-                          m: 0.5,
-                        }}
-                        variant="filled"
-                        inputProps={{
-                          style: {
-                            fontSize: 40,
-                            textAlign: "center",
-                            padding: 0,
-                          },
-                          maxLength: 2,
-                        }}
-                        value={board[rowIndex][colIndex].letter}
-                        onChange={(e) =>
-                          editBoard(rowIndex, colIndex, e.target.value)
-                        }
-                      ></TextField>
-                    );
-                  }
-                );
-              })}
-            </>
-          )}
-        </Box>
-        {currSelection && (
-          <Link
-            href={`https://www.collinsdictionary.com/dictionary/english/${currSelection.str}`}
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            Click Here for Selected Word Definition
-          </Link>
-        )}
-        {validWords.length > 0 ? (
-          <Box
-            sx={{
-              maxWidth: 500,
-              bgcolor: "background.paper",
-              boxShadow: 3,
-              mt: 2,
-              mb: 3,
-            }}
-          >
-            <Accordion>
-              <AccordionSummary
-                expandIcon={<ExpandMoreIcon />}
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "flex-start",
-                }}
-              >
-                <Typography>
-                  <strong>
-                    Valid Words: {validWords.length} Total Points: {totalPoints}
-                  </strong>
-                </Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Pagination
-                  count={count}
-                  size="small"
-                  page={page}
-                  onChange={handleChange}
-                  color="success"
-                />
-
-                <List p="15" pt="3" spacing={2}>
-                  <Box
-                    sx={{
-                      display: "grid",
-                      gridTemplateColumns: "repeat(3, 1fr)",
-                    }}
-                  >
-                    {_DATA.currentData().map((word) => {
-                      return (
-                        <ListItemButton
-                          key={word.str}
-                          style={{ cursor: "pointer" }}
-                          onClick={() => setCurrSelection(word)}
-                        >
-                          <Typography>{word.str.toUpperCase()}</Typography>
-                        </ListItemButton>
-                      );
-                    })}
-                  </Box>
-                </List>
-                <Button
-                  variant="contained"
-                  color="info"
-                  onClick={() => {
-                    sortResultsAndSave(validWords);
-                  }}
-                >
-                  Sort by
-                  {smallestToLargest ? " increasing size" : " decreasing size"}
-                </Button>
-              </AccordionDetails>
-            </Accordion>
-          </Box>
-        ) : (
-          <Box>No Valid Words</Box>
-        )}
 
         <Button
           variant="contained"
